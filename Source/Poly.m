@@ -92,3 +92,4 @@ intrinsic SplitCubicEquation(pol :: RngUPolElt, L::SeqEnum[RngElt])
     end if;
 
 end intrinsic;
+

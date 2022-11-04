@@ -12,7 +12,7 @@ assert t in Pl;
 assert t-1 in Pl;
 assert 0 in Pl;
 
-assert RootLatticeType(S, t) eq RootConfiguration("D7");
-assert RootLatticeType(S, R!0) eq RootConfiguration("E8");
-assert RootLatticeType(S, t-1) eq RootConfiguration("A2");
+assert RootLatticeType(S, t) eq RootLatticeType("D7");
+assert RootLatticeType(S, R!0) eq RootLatticeType("E8");
+assert RootLatticeType(S, t-1) eq RootLatticeType("A2");
 

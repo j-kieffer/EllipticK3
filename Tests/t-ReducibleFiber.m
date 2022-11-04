@@ -3,7 +3,24 @@ A<r> := PolynomialRing(Rationals());
 F<r> := FieldOfFractions(A);
 P<t> := PolynomialRing(F);
 
-/* Example with An fibers: Shimura N=6 */
+/* Test components: Shimura N=6 */
+
+S := EllipticK3([t, 2*r^2*t^3*(t-1), r^4*t^5*(t-1)^2]);
+F := ReducibleFiber(S, t);
+assert F`RootType eq RootLatticeType("D7");
+
+x,uk,y1 := Explode(F`RatComps[2]);
+assert x eq r^2*t^2;
+assert uk eq t^3;
+
+x,uk,y2 := Explode(F`RatComps[3]);
+assert x eq r^2*t^2;
+assert uk eq t^3;
+
+assert y2 eq -y1;
+assert y1^2 eq r^6*t^6;
+
+/* Example with An fibers: Shimura N=14 */
 
 S := EllipticK3([(r+1)*t^2 + (3*r^2+2*r)*t + r^3,
 		 (r+1)*((4*r+2)*t + 2*r^2) * (t^3-t^2),
@@ -19,8 +36,10 @@ assert KodairaType(S2, Pl) eq "I4";
 
 assert not HasRationalComponents(S, t, "I7");
 assert HasRationalComponents(S2, t, "I7");
+print ReducibleFiber(S2,t)`RatComps;
 assert not HasRationalComponents(S, t-1, "I4");
 assert HasRationalComponents(S2, Pl, "I4");
+print ReducibleFiber(S2,Pl)`RatComps;
 
 /* Example with E6 and D5: Hilbert D=28 (typo in c in paper: cf aux files) */
 

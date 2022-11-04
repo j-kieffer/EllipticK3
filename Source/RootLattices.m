@@ -14,39 +14,7 @@ intrinsic MonoidOfRootConfigurations() -> GrpAb
 end intrinsic;
 
 
-intrinsic RootConfiguration(name:: MonStgElt) -> GrpAbElt
-
-{Return configuration as a group element}
-    
-    l := name[1];
-    n := StringToInteger(name[2..#name]);
-    M := MonoidOfRootConfigurations();
-    case l:
-    when "A":
-	return M.n;
-    when "D":
-	return M.(n-3+24);
-    when "E":
-	return M.(n-5+45);
-    else:
-    error "Root lattice name ", name, " not recognized";
-end case;
-
-end intrinsic;
-
-
-intrinsic ParseElementaryRootConfiguration(name :: MonStgElt) -> MonStgElt, RngIntElt
-
-{Return ADE type and rank}
-
-    l := name[1];
-    n := StringToInteger(name[2..#name]);
-    return l, n;
-
-end intrinsic;
-
-
-intrinsic ParseElementaryRootConfiguration(conf :: GrpAbElt) -> MonStgElt, RngIntElt
+intrinsic ParseRootLatticeType(conf :: GrpAbElt) -> MonStgElt, RngIntElt
 
 {Return ADE type and rank}
 
@@ -56,7 +24,10 @@ intrinsic ParseElementaryRootConfiguration(conf :: GrpAbElt) -> MonStgElt, RngIn
 	error "Root configuration must contain a single lattice";
     else
 	i := Index(S, 1);
-	return ParseElementaryRootConfiguration(Names(Parent(conf))[i]);
+	name := Names(Parent(conf))[i];
+	l := name[1];
+	n := StringToInteger(name[2..#name]);
+	return l, n;
     end if;
 
 end intrinsic;

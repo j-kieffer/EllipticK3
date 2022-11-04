@@ -51,24 +51,40 @@ end intrinsic;
 intrinsic RootLatticeType(name :: MonStgElt) -> GrpAbElt
 
 {Root lattice contribution of a given Kodaira type}
+
+    /* Convert name to root lattice */
     
     if name eq "II" then error "No lattice contribution";
-    elif name eq "III" then return RootConfiguration("A1");
-    elif name eq "IV" then return RootConfiguration("A2");
-    elif name eq "IV*" then return RootConfiguration("E6");
-    elif name eq "III*" then return RootConfiguration("E7");
-    elif name eq "II*" then return RootConfiguration("E8");
+    elif name eq "III" then name := "A1";
+    elif name eq "IV" then name := "A2";
+    elif name eq "IV*" then name := "E6";
+    elif name eq "III*" then name := "E7";			     
+    elif name eq "II*" then name := "E8";
     elif "*" in name then
 	assert name[1] eq "I" and name[#name] eq "*";
 	n := StringToInteger(name[2..(#name-1)]);	
-	return RootConfiguration("D" cat IntegerToString(n+4));
-    else //I something
-	assert name[1] eq "I";
+	name := "D" cat IntegerToString(n+4);
+    elif name[1] eq "I" then //I something
 	n := StringToInteger(name[2..(#name)]);
 	if n lt 2 then error "No lattice contribution";
-	else return RootConfiguration("A" cat IntegerToString(n-1));
+	else name := "A" cat IntegerToString(n-1);
 	end if;
     end if;
+
+    /* Now name is a root lattice type */
+    l := name[1];
+    n := StringToInteger(name[2..#name]);
+    M := MonoidOfRootConfigurations();
+    case l:
+    when "A":
+	return M.n;
+    when "D":
+	return M.(n-3+24);
+    when "E":
+	return M.(n-5+45);
+    else:
+    error "Root lattice name ", name, " not recognized";
+    end case;
 
 end intrinsic;
 
