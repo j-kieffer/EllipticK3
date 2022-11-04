@@ -5,7 +5,7 @@ Q := quo<P|I>;
 F<a,b> := FieldOfFractions(Q);
 R<t> := PolynomialRing(F);
 
-S := EllipticK3(F, t, [1+a*t^2, b*t^7, t^10]);
+S := EllipticK3([1+a*t^2, b*t^7, t^10]);
 E := EllipticCurve(S);
 
 assert aInvariants(S) eq aInvariants(E);

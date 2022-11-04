@@ -3,7 +3,7 @@ P<b> := PolynomialRing(Rationals());
 Q<b> := FieldOfFractions(P);
 R<t> := PolynomialRing(Q);
 
-S := EllipticK3(Q, t, [t, 2*b*t^3*(t-1), b^2*t^5*(t-1)^2]);
+S := EllipticK3([t, 2*b*t^3*(t-1), b^2*t^5*(t-1)^2]);
 
 Pl := ReduciblePlaces(S);
 
