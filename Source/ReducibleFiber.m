@@ -4,6 +4,8 @@ intrinsic ReducibleFiber(S :: EllK3, Pl :: RngUPolElt) -> EllK3RedFib
 
 {Reducible fiber of S at the given place}
 
+    require Pl eq 0 or Degree(Pl) ge 1: "Not a valid place";
+
     if (Pl eq 0) then
 	return ReducibleFiber(InvertT(S), S`EllParam);
     end if;
@@ -13,9 +15,14 @@ intrinsic ReducibleFiber(S :: EllK3, Pl :: RngUPolElt) -> EllK3RedFib
     F`Kodaira := KodairaType(S, Pl);
     F`RootType := RootLatticeType(F`Kodaira);
     
-    if Degree(Pl) eq 1 and HasRationalComponents(S, Pl, F`Kodaira) then
+    F`IsRat := Degree(Pl) eq 1 and HasRationalComponents(S, Pl, F`Kodaira);    
+    if F`IsRat then
 	F`RatComps := Tate(S, Pl, F`Kodaira);
     end if;
+    
+    F`Lat := RootLattice(F`RootType);
+    F`Dual := Dual(F`Lat: Rescale := false);
+    F`Grp := quo<F`Dual|F`Lat>;
     
     return F;
 

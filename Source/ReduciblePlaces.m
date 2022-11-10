@@ -48,44 +48,31 @@ intrinsic KodairaType(S :: EllK3, Pl :: RngUPolElt) -> MonStgElt
 end intrinsic;
 
 
-intrinsic RootLatticeType(name :: MonStgElt) -> GrpAbElt
+intrinsic KodairaToLatticeType(ktype :: MonStgElt) -> MonStgElt
 
-{Root lattice contribution of a given Kodaira type}
+{Name of root lattice attached to given Kodaira type}
 
-    /* Convert name to root lattice */
-    
-    if name eq "II" then error "No lattice contribution";
-    elif name eq "III" then name := "A1";
-    elif name eq "IV" then name := "A2";
-    elif name eq "IV*" then name := "E6";
-    elif name eq "III*" then name := "E7";			     
-    elif name eq "II*" then name := "E8";
-    elif "*" in name then
-	assert name[1] eq "I" and name[#name] eq "*";
-	n := StringToInteger(name[2..(#name-1)]);	
+    if ktype eq "II" then error "No lattice contribution";
+    elif ktype eq "III" then name := "A1";
+    elif ktype eq "IV" then name := "A2";
+    elif ktype eq "IV*" then name := "E6";
+    elif ktype eq "III*" then name := "E7";			     
+    elif ktype eq "II*" then name := "E8";
+    elif "*" in ktype then
+	assert ktype[1] eq "I" and ktype[#ktype] eq "*";
+	n := StringToInteger(ktype[2..(#ktype-1)]);	
 	name := "D" cat IntegerToString(n+4);
-    elif name[1] eq "I" then //I something
-	n := StringToInteger(name[2..(#name)]);
+    elif ktype[1] eq "I" then //I something
+	n := StringToInteger(ktype[2..(#ktype)]);
 	if n lt 2 then error "No lattice contribution";
 	else name := "A" cat IntegerToString(n-1);
 	end if;
+    else
+	name := ktype;
     end if;
 
-    /* Now name is a root lattice type */
-    l := name[1];
-    n := StringToInteger(name[2..#name]);
-    M := MonoidOfRootConfigurations();
-    case l:
-    when "A":
-	return M.n;
-    when "D":
-	return M.(n-3+24);
-    when "E":
-	return M.(n-5+45);
-    else:
-    error "Root lattice name ", name, " not recognized";
-    end case;
-
+    return name;
+    
 end intrinsic;
 
 
@@ -93,8 +80,7 @@ intrinsic RootLatticeType(S :: EllK3, Pl :: RngUPolElt) -> GrpAbElt
 
 {Root lattice contribution of a given reducible place}
     
-    name := KodairaType(S, Pl);
-    return RootLatticeType(name);
+    return RootLatticeType(KodairaToLatticeType(KodairaType(S, Pl)));
     
 end intrinsic;
 

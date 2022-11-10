@@ -36,10 +36,10 @@ assert KodairaType(S2, Pl) eq "I4";
 
 assert not HasRationalComponents(S, t, "I7");
 assert HasRationalComponents(S2, t, "I7");
-print ReducibleFiber(S2,t)`RatComps;
+//print ReducibleFiber(S2,t)`RatComps;
 assert not HasRationalComponents(S, t-1, "I4");
 assert HasRationalComponents(S2, Pl, "I4");
-print ReducibleFiber(S2,Pl)`RatComps;
+//print ReducibleFiber(S2,Pl)`RatComps;
 
 /* Example with E6 and D5: Hilbert D=28 (typo in c in paper: cf aux files) */
 

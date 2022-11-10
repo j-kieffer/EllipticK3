@@ -20,8 +20,11 @@ declare type EllK3RedFib;
 declare attributes EllK3RedFib: Pl,
 	Kodaira,
 	RootType,
+	IsRat,
 	RatComps,
-	Group;
+	Lat,
+	Dual,
+	Grp;
 
 /* Mordell--Weil group */
 

@@ -1,9 +1,11 @@
 
 
-intrinsic EllipticK3(Coeffs :: SeqEnum[RngUPolElt]) -> EllK3
+intrinsic EllipticK3(Coeffs :: SeqEnum[RngUPolElt]:
+		     ComputeReducibleFibers := true)
+	  -> EllK3
+							   
 {Define an elliptic K3 surface by the data of its coefficients.}
     
-
     require #Coeffs eq 2 or #Coeffs eq 3: "Must specify either 2 or 3
     coefficients";
 
@@ -12,8 +14,7 @@ intrinsic EllipticK3(Coeffs :: SeqEnum[RngUPolElt]) -> EllK3
     F := BaseRing(Coeffs[1]);
     P := Parent(Coeffs[1]);
 
-    /* Convert base ring to a field if not already the case */
-
+    /* Convert base ring to a field if not already the case */    
     if not IsField(F) then	
 	FF := FieldOfFractions(F);
 	t := P.1;
@@ -26,19 +27,31 @@ intrinsic EllipticK3(Coeffs :: SeqEnum[RngUPolElt]) -> EllK3
 	AssignNames(~P, [Sprint(t)]);
 	F := FF;
     end if;
-    
+
+    /* Set BaseField, EllParam, Coeffs */    
     S`BaseField := F;
     S`EllParam := P.1;
-    S`Coeffs := [P!c: c in Coeffs];
-    
+    S`Coeffs := [P!c: c in Coeffs];    
     if #Coeffs eq 2 then S`Coeffs := [P!0] cat S`Coeffs; end if;
     
-    return S;
+    /* Collect reducible fibers */
+    if ComputeReducibleFibers then
+	L := [];
+	Pls := ReduciblePlaces(S);
+	for Pl in Pls do
+	    fib := ReducibleFiber(S, Pl);
+	    Append(~L, fib);
+	end for;
+	S`RedFib := L;
+    end if;
 
+    return S;
+    
 end intrinsic;
 	
 
 intrinsic EllipticK3(L :: Lat) -> EllK3
+				      
 {Construct the family of elliptic K3 surfaces polarized by the given
 Néron--Severi lattice.}
 

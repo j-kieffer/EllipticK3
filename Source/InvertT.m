@@ -20,6 +20,6 @@ intrinsic InvertT(S :: EllK3) -> EllK3
     t := S`EllParam;
     deg := [4,8,12];
     Coeffs := [Reverse(S`Coeffs[i], deg[i]): i in [1..3]];
-    return EllipticK3(Coeffs);
+    return EllipticK3(Coeffs: ComputeReducibleFibers := false);
     
 end intrinsic;
