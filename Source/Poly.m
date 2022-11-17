@@ -1,5 +1,13 @@
 
 
+intrinsic Variables(A :: Rng) -> SeqEnum[RngElt]
+{Return the list of variables of A}
+
+    return [A.j: j in [1..NumberOfGenerators(A)]];
+
+end intrinsic;
+
+
 intrinsic DegreeOneRoot(pol :: RngUPolElt) -> FldElt
 						       
 {Compute root of degree one polynomial in variable t}
@@ -48,7 +56,7 @@ using variable v}
     pol := v^2 - r;
     fac := Factorization(pol);
     
-    if #fac eq 2 then return true, [];
+    if #fac eq 2 then return true, DegreeOneRoot(fac[1][1]);
     else return false, pol;
     end if;
     
@@ -93,3 +101,14 @@ intrinsic SplitCubicEquation(pol :: RngUPolElt, L::SeqEnum[RngElt])
 
 end intrinsic;
 
+
+intrinsic Reverse(f :: RngUPolElt, n :: RngIntElt) -> RngUPolElt
+
+{Return x^n * f(1/x). The integer n must be at least deg(f).}
+
+    Coeffs := Coefficients(f);
+    if #Coeffs gt n+1 then error "Reverse is not a polynomial"; end if;
+    Coeffs := Coeffs cat [0: i in [#Coeffs..n]];
+    return Parent(f)! Reverse(Coeffs);
+
+end intrinsic;

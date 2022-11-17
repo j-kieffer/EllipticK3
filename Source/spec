@@ -1,13 +1,11 @@
 {
-    InvertT.m
     RootLattices.m
     ReduciblePlaces.m
     Types.m
     Poly.m
     Rings.m
-    Print.m
+    Intersection.m
+    AddSection.m
     Create.m
-    Invariants.m
-    RHS.m
     ReducibleFiber.m
 }

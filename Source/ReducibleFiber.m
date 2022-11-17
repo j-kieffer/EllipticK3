@@ -7,7 +7,8 @@ intrinsic ReducibleFiber(S :: EllK3, Pl :: RngUPolElt) -> EllK3RedFib
     require Pl eq 0 or Degree(Pl) ge 1: "Not a valid place";
 
     if (Pl eq 0) then
-	return ReducibleFiber(InvertT(S), S`EllParam);
+	F := ReducibleFiber(InvertT(S), S`EllParam);
+	F`Pl := 0*S`EllParam;
     end if;
 
     F := New(EllK3RedFib);
@@ -20,16 +21,33 @@ intrinsic ReducibleFiber(S :: EllK3, Pl :: RngUPolElt) -> EllK3RedFib
 	F`RatComps := Tate(S, Pl, F`Kodaira);
     end if;
     
-    F`Lat := RootLattice(F`RootType);
-    F`Dual := Dual(F`Lat: Rescale := false);
-    F`Grp := quo<F`Dual|F`Lat>;
-    
     return F;
 
-    /* Ideas: - store root lattice; store dual group; store isomorphism of dual
-    group with standard abelian group; store accepted automorphisms on one side
-    or the other. */
+end intrinsic;
 
+
+intrinsic RHSQuotientAndEval(S :: EllK3,
+			     x0 :: RngElt,
+			     u :: RngUPolElt,
+			     r :: RngIntElt,
+			     n :: RngIntElt) -> RngElt
+								
+{Evaluate right hand side of S at x0 + x*u^r, divide by u^n, evaluate at given
+ place, and return result as a polynomial in t}
+
+    require Degree(u) eq 1: "Must be a degree 1 finite place";
+			 
+    val := DegreeOneRoot(u);
+    F := S`BaseField;
+    t := S`EllParam;
+    R := Parent(t);    
+    Z<x> := PolynomialRing(R);
+    
+    rhs := Coefficients(RHS(S, x0 + x*u^r)); //Sequence of elements in R    
+    rhs := [ExactQuotient(c, u^n): c in rhs];
+    Ev := [Evaluate(c, val): c in rhs];
+    return &+[Ev[i+1] * t^i: i in [0..#Ev-1]];
+    
 end intrinsic;
 
 

@@ -62,8 +62,18 @@ intrinsic RootLattice(name :: MonStgElt) -> Lat
 
     // Convert if Kodaira
     name := KodairaToLatticeType(name);
-    D := LatticeDatabase();    
-    return Lattice(D, name);
+    l := name[1];
+    n := StringToInteger(name[2..#name]);
+    
+    D := LatticeDatabase();
+    L := Lattice(D, name);
+    d := Dimension(L);
+    G := GramMatrix(L);
+    if l eq "D" then // Correct sign of first basis vector
+	G[1,3] := -1;
+	G[3,1] := -1;
+    end if;
+    return Lattice(ScalarMatrix(d, 1), G);
     
 end intrinsic;
 
@@ -84,4 +94,29 @@ intrinsic RootLattice(type :: GrpAbElt) -> Lat
     end for;
     return L;
     
+end intrinsic;
+
+
+intrinsic RootLatticeCompIndex(type :: GrpAbElt, i :: RngIntElt)
+	  -> RngIntElt
+		 
+{Index of standard basis vector corresponding to simple component number i}
+
+    l, n := ParseRootLatticeType(type);
+    if l eq "A" then
+	return i;
+    elif l eq "D" then
+	if i eq 1 then
+	    return n;
+	elif i eq 2 then
+	    return 1;
+	elif i eq 3 then
+	    return 2;
+	end if;
+    elif n eq 6 then
+	return [1,5][i];
+    elif n eq 7 then
+	return 6;
+    end if;
+	
 end intrinsic;
