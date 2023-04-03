@@ -1,12 +1,12 @@
 AttachSpec("spec");
-load "./Tests/t-ReducibleFiber.m";
-print "PASS";
 load "./Tests/t-Create.m";
-print "PASS";
+print("PASS");
 load "./Tests/t-RHS.m";
-print "PASS";
+print("PASS");
 load "./Tests/t-ReduciblePlaces.m";
-print "PASS";
+print("PASS");
 load "./Tests/t-Invariants.m";
-print "PASS";
+print("PASS");
+load "./Tests/t-ReducibleFiber.m";
+print("PASS");
 exit;

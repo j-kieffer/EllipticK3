@@ -50,9 +50,9 @@ end intrinsic;
 
 intrinsic SquareEquation(r::RngElt, v::RngElt) -> Bool, RngElt
 
-{Construct a polynomial equation ensuring that r will be a square,
-using variable v}
-
+{If r is a square, output true and a square root. If not, construct a
+polynomial equation ensuring that r will be a square, using variable v}
+    
     pol := v^2 - r;
     fac := Factorization(pol);
     

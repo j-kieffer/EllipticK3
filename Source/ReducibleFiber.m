@@ -7,22 +7,20 @@ intrinsic ReducibleFiber(S :: EllK3, Pl :: RngUPolElt) -> EllK3RedFib
     require Pl eq 0 or Degree(Pl) ge 1: "Not a valid place";
 
     if (Pl eq 0) then
-	F := ReducibleFiber(InvertT(S), S`EllParam);
-	F`Pl := 0*S`EllParam;
+        t := EllipticParameter(S);
+	    F := ReducibleFiber(InvertT(S), t);
+	    F`Pl := 0*t;
     end if;
 
     F := New(EllK3RedFib);
     F`Pl := Pl;
     F`Kodaira := KodairaType(S, Pl);
-    F`RootType := RootLatticeType(F`Kodaira);
-    
-    F`IsRat := Degree(Pl) eq 1 and HasRationalComponents(S, Pl, F`Kodaira);    
-    if F`IsRat then
-	F`RatComps := Tate(S, Pl, F`Kodaira);
+    if HasRationalComponents(S, Pl, KodairaType(F)) then
+	    F`Comps := Tate(S, Pl, KodairaType(F));
     end if;
     
     return F;
-
+    
 end intrinsic;
 
 
@@ -38,8 +36,7 @@ intrinsic RHSQuotientAndEval(S :: EllK3,
     require Degree(u) eq 1: "Must be a degree 1 finite place";
 			 
     val := DegreeOneRoot(u);
-    F := S`BaseField;
-    t := S`EllParam;
+    t := EllipticParameter(S);
     R := Parent(t);    
     Z<x> := PolynomialRing(R);
     
@@ -63,11 +60,11 @@ equations that must be satisfied for the components to be rational}
     conf := RootLatticeType(ktype);
     l, n := ParseRootLatticeType(conf);
     
-    t := S`EllParam;
+    t := EllipticParameter(S);
     R := Parent(t);
     x0 := R!0;
 
-    B := S`BaseField;
+    B := BaseField(S);
     Q<v1,v2,v3> := PolynomialRing(B, 3);
     L := [v1,v2,v3];
     
@@ -82,7 +79,7 @@ equations that must be satisfied for the components to be rational}
 	rhs := RHSQuotientAndEval(S, x0, u, 2, 4);
 	assert rhs ne 0 and Degree(rhs) eq 0;
 	rhs := Coefficient(rhs, 0);
-	return SquareEquation(rhs, L[1]);
+	return SquareEquation(rhs, t);
 
     elif l eq "D" and n eq 4 then	
 	//Find cube root at u=0
@@ -111,7 +108,7 @@ equations that must be satisfied for the components to be rational}
 		rhs := RHSQuotientAndEval(S, x0, u, i, 2*i);
 		assert Degree(rhs) eq 0;
 		rhs := Coefficient(rhs, 0);
-		return SquareEquation(rhs, L[1]);
+		return SquareEquation(rhs, t);
 	    end try;
 	    assert Degree(rhs) eq 2;
 	    try
@@ -120,7 +117,7 @@ equations that must be satisfied for the components to be rational}
 		//End computation: this is Dn for n even
 		assert n eq 2*i+2;
 		D := Discriminant(rhs);
-		return SquareEquation(D, L[1]);
+		return SquareEquation(D, t);
 	    end try;
 	    x0 +:= x1 * u^i;
 	    i +:= 1;
@@ -134,7 +131,7 @@ equations that must be satisfied for the components to be rational}
 	rhs := RHSQuotientAndEval(S, x0, u, 1, 2);	
 	assert Degree(rhs) eq 0;
 	r := Coefficient(rhs, 0);
-	return SquareEquation(r, L[1]);
+	return SquareEquation(r, t);
 	
     elif l eq "A" and n ge 2 then	
 	//Get first branches: RHS must have a double root
@@ -142,7 +139,7 @@ equations that must be satisfied for the components to be rational}
 	x0 := MultipleRoot(rhs, 2);	
 	r := ExactQuotient(rhs, (t-x0)^2);
 	r := Evaluate(r, x0);
-	return SquareEquation(r, L[1]);
+	return SquareEquation(r, t);
 	
     else //Other cases have no automorphisms
 	return true, [];
@@ -180,8 +177,8 @@ intrinsic TateA_mult(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 								       
 {Tate in multiplicative case An}
 
-    F := S`BaseField;
-    t := S`EllParam;
+    F := BaseField(S);
+    t := EllipticParameter(S);
     Left := [];
     Right := [];
     x0 := F!0;
@@ -243,7 +240,7 @@ intrinsic TateA_add(S :: EllK3, u :: RngUPolElt, ktype :: MonStgElt)
 									  
 {Tate in additive case An}
     
-    F := S`BaseField;
+    F := BaseField(S);
     x0 := F!0;
     
     //Find cube root at u=0
@@ -272,7 +269,7 @@ intrinsic TateD(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 								  
 {Tate in case Dn}
     
-    F := S`BaseField;
+    F := BaseField(S);
     x0 := F!0;
     L := [];
 
@@ -348,7 +345,7 @@ intrinsic TateE(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 								  
 {Tate in case En}
 
-    F := S`BaseField;
+    F := BaseField(S);
     x0 := F!0;
     L := [];
 

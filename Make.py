@@ -21,12 +21,12 @@ with open(os.path.join(root, "spec"), "w") as spec:
     spec.write("}\n")
 
 with open(os.path.join(root, "Tests.m"), "w") as f:
-    print "Tests"
+    print("Tests");
     path = os.path.join(root, "Tests")
     f.write("AttachSpec(\"spec\");\n")
     for test in [test for test in os.listdir(path) if test[-1] == "m"]:
         f.write("load \"")
         f.write(os.path.join(path, test));
         f.write("\";\n")
-        f.write("print \"PASS\";\n");
+        f.write("print(\"PASS\");\n");
     f.write("exit;");

@@ -3,7 +3,6 @@
     ReduciblePlaces.m
     Types.m
     Poly.m
-    Rings.m
     Intersection.m
     AddSection.m
     Create.m

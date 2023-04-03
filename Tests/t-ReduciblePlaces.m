@@ -1,9 +1,9 @@
 
 P<b> := PolynomialRing(Rationals());
-Q<b> := FieldOfFractions(P);
-R<t> := PolynomialRing(Q);
+R<t> := PolynomialRing(P);
 
-S := EllipticK3([t, 2*b*t^3*(t-1), b^2*t^5*(t-1)^2]);
+S := EllipticK3([t, 2*b*t^3*(t-1), b^2*t^5*(t-1)^2]:
+                ComputeReducibleFibers := false);
 
 Pl := ReduciblePlaces(S);
 
