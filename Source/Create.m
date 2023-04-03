@@ -61,16 +61,14 @@ intrinsic EllipticK3(Coeffs :: SeqEnum[RngUPolElt]:
         S`RootConf +:= RootType(fib);
     end for;
     n := Dimension(L);
-    S`Ambient := AmbientSpace(L);
-    S`NSLat := L;
-    S`RootNSLat := L;
+    S`Frame := L;
+    S`RootSpan := L;
     S`RootLat := L;
-    S`RootDual := DualBasisLattice(L);
 
     /* Get trivial groups */
-    S`TorsGrp, S`TorsMap := quo < S`RootNSLat | S`RootLat >;
+    S`TorsGrp, S`TorsMap := quo < S`RootSpan | S`RootLat >;
     S`TorsSections := [];
-    S`MWGrp, S`MWMap := quo < S`NSLat | S`RootLat >;
+    S`MWGrp, S`MWMap := quo < S`Frame | S`RootLat >;
     S`MWLat := StandardLattice(0);
     S`MWProj := ZeroMatrix(Rationals(), Dimension(L), 0);
     S`MWSections := [];

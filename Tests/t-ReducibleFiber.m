@@ -42,8 +42,7 @@ assert HasRationalComponents(S2, Pl, "I4");
 /* Example with E6 and D5: Hilbert D=28 (typo in c in paper: cf aux files) */
 
 A<f,g> := PolynomialRing(Rationals(), 2);
-F<f,g> := FieldOfFractions(A);
-P<t> := PolynomialRing(F);
+P<t> := PolynomialRing(A);
 a := 2*(f^2-g^2)*(t-1)+t;
 b := (f^2-g^2)^2*(1-t)-2*(f^2-g^2)*(f+1)*t;
 c := (f+1)^2*(f^2-g^2)^2*t;

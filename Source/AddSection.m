@@ -4,7 +4,6 @@ intrinsic AddSection(~S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
 
 {Let S know about one of its Mordell-Weil sections}
 
-    require Parent(x) eq Parent(S`EllParam) and Parent(y) eq Parent(S`EllParam): "Not an element of the correct polynomial ring";
     require RHS(S,x) eq y^2: "Not a section";
 
     /* Get new intersection matrix */
