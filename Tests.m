@@ -3,6 +3,8 @@ load "./Tests/t-RootNS.m";
 print("PASS");
 load "./Tests/t-ReducibleFiber.m";
 print("PASS");
+load "./Tests/t-Intersection.m";
+print("PASS");
 load "./Tests/t-Create.m";
 print("PASS");
 load "./Tests/t-RHS.m";

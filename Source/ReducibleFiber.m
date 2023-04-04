@@ -194,21 +194,12 @@ intrinsic TateA_mult(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
     r := Evaluate(r, x0);
     b, y0 := IsSquare(r);
     if not b then error "Fibers are not rational, not a square:", r; end if;
-
-    Left := Append(Left, [x0, u, y0*u]);
-    Right := Append(Right, [x0, u, -y0*u]);
     k := 1;
+	rhs := RHSQuotientAndEval(S, x0, u, k, 2*k);
 
     while true do
 	    //Previous fiber was x = x0 + O(u^k).
 	    //Adjust x0 such that new fibers on left and right are x = x0+u^(k+1)
-	    try
-	        rhs := RHSQuotientAndEval(S, x0, u, k, 2*k);
-	    catch e
-	        //Reached the end of Tate's algorithm with n even.
-	        assert 2*k-2 eq n;
-	        break;
-	    end try;
 	    
 	    assert Degree(rhs) eq 2 and Coefficient(rhs, 2) eq r;
 	    //Does it have a double root? If yes, adjust x0 and add two new branches
@@ -225,10 +216,20 @@ intrinsic TateA_mult(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 	        Left := Append(Left, [x0, u^k]);
 	        break;
 	    end try;
-	    
-	    x0 +:= x1*u^k;
-	    Left := Append(Left, [x0, u^(k+1), y0*u^(k+1)]);
-	    Right := Append(Right, [x0, u^(k+1), -y0*u^(k+1)]);
+        
+        try
+            rhs := RHSQuotientAndEval(S, x0+x1*u^k, u, k+1, 2*(k+1));
+        catch e
+            //Reached the end with n even
+            assert 2*k eq n;	    
+	        Left := Append(Left, [x0, u^k, y0*(x0+x1*u^k), 0, u^(k+1)]);
+	        Right := Append(Right, [x0, u^k, -y0*(x0+x1*u^k), 0, u^(k+1)]);
+            break;
+        end try;
+        
+        Left := Append(Left, [x0, u^k, y0*(x1*u^k-x0), y0, u^(k+1)]);
+        Right := Append(Right, [x0, u^k, -y0*(x1*u^k-x0), -y0, u^(k+1)]);
+        x0 +:= x1*u^k;
 	    k +:= 1;
     end while;
     
@@ -259,7 +260,7 @@ intrinsic TateA_add(S :: EllK3, u :: RngUPolElt, ktype :: MonStgElt)
 	    r := Coefficient(rhs, 0);
 	    b, y0 := IsSquare(r);
 	    if not b then error "Fibers are not rational, not a square:", r; end if;
-	    return [[x0, u, y0*u], [x0, u, -y0*u]];
+	    return [[x0, u, y0*u, 0, u^2], [x0, u, -y0*u, 0, u^2]];
     else
 	    error "Wrong Kodaira type", ktype;
     end if;
@@ -315,8 +316,8 @@ intrinsic TateD(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 	        assert Degree(rhs) eq 0;
 	        b, y0 := IsSquare(rhs);
 	        if not b then error "Far fibers are not rational, not a square:", rhs; end if;
-	        L := Append(L, [x0, u^i, y0*u^i]);
-	        L := Append(L, [x0, u^i, -y0*u^i]);
+	        L := Append(L, [x0, u^i, y0*u^i, 0, u^(i+1)]);
+	        L := Append(L, [x0, u^i, -y0*u^i, 0, u^(i+1)]);
 	        break;
 	    end try;
 	    
@@ -365,8 +366,8 @@ intrinsic TateE(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 	    assert rhs ne 0 and Degree(rhs) eq 0;
 	    b, y0 := IsSquare(rhs);
 	    if not b then error "Far fibers are not rational, not a square:", rhs; end if;
-	    L := Append(L, [x0, u^2, y0*u^2]);
-	    L := Append(L, [x0, u^2, -y0*u^2]);
+	    L := Append(L, [x0, u^2, y0*u^2, 0, u^3]);
+	    L := Append(L, [x0, u^2, -y0*u^2, 0,u^3]);
     elif n eq 7 then //Find one far component
 	    rhs := RHSQuotientAndEval(S, x0, u, 2, 5);
 	    assert Degree(rhs) eq 1;

@@ -96,6 +96,12 @@ of Néron--Severi lattice}
     return S`MWLat, S`MWProj;
 end intrinsic;
 
+intrinsic MordellWeilProjection(S :: EllK3) -> ModMatFldElt
+{Return the matrix of the orthogonal projection from the frame onto the
+Mordell--Weil lattice}
+    return S`MWProj;
+end intrinsic;
+
 intrinsic MordellWeilSections(S :: EllK3) -> SeqEnum[EllK3MW]
 {List of generators for the free part of known Mordell--Weil group of S}
     require assigned S`MWSections: "Mordell--Weil sections not assigned";
