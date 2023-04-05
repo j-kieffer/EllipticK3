@@ -193,7 +193,9 @@ intrinsic TateA_mult(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
     r := ExactQuotient(rhs, (t-x0)^2);
     r := Evaluate(r, x0);
     b, y0 := IsSquare(r);
-    if not b then error "Fibers are not rational, not a square:", r; end if;
+    if not b and n ge 2 then
+        error "Fibers are not rational, not a square:", r;
+    end if;
     k := 1;
 	rhs := RHSQuotientAndEval(S, x0, u, k, 2*k);
 
@@ -210,9 +212,9 @@ intrinsic TateA_mult(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 	        //Reached the end of Tate's algorithm with n odd
 	        assert 2*k-1 eq n;
 	        //Translate x s.t. equation becomes y^2 = x^2 + (degree 0)
-	        num := -Coefficient(rhs, 1);
-	        den := 2*Coefficient(rhs, 2);
-	        x0 +:= (num/den) * u^k;
+	        //num := -Coefficient(rhs, 1);
+	        //den := 2*Coefficient(rhs, 2);
+	        //x0 +:= (num/den) * u^k;
 	        Left := Append(Left, [x0, u^k]);
 	        break;
 	    end try;

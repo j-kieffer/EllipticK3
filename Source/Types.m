@@ -34,9 +34,14 @@ declare attributes EllK3MW: Vec, // in Néron--Severi lattice
 /* Attributes of EllK3 */
 
 intrinsic EllipticCurve(S :: EllK3) -> CrvEll
-{Generic fiber of S as an elliptic curve.}
+{Return the generic fiber of S as an elliptic curve.}
     require assigned S`EC: "Elliptic curve not assigned";
     return S`EC;
+end intrinsic;
+
+intrinsic GenericFiber(S :: EllK3) -> CrvEll
+{Return the generic fiber of S as an elliptic curve.}
+    return EllipticCurve(S);
 end intrinsic;
 
 intrinsic ReducibleFibers(S :: EllK3) -> SeqEnum[EllK3RedFib]
@@ -276,6 +281,7 @@ intrinsic Print(fib :: EllK3RedFib)
         printf "Reducible fiber at %o = 0", Place(fib);
     end if;
     printf " of Kodaira type %o", KodairaType(fib);
+    printf " (root type %o)", RootType(fib);
 end intrinsic;
 
 intrinsic Print(x :: EllK3MW)
