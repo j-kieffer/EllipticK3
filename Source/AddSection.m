@@ -1,10 +1,12 @@
 
 
-intrinsic AddSection(~S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
+intrinsic AddSection(~S :: EllK3, x :: RngElt, y :: RngElt)
 
 {Let S know about one of its Mordell-Weil sections}
 
     require RHS(S,x) eq y^2: "Not a section";
+    x := BaseFunctionField(S) ! x;
+    y := BaseFunctionField(S) ! y;
 
     n := Rank(Frame(S));
     M := IntersectionMatrix(S, x, y);
@@ -13,6 +15,7 @@ intrinsic AddSection(~S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
         v := FrameSpace(S) ! ([0: i in [1..n]] cat [1]);
         AddSection(~S, v, x, y);
     else
+        assert Determinant(M) eq 0;
         v := NSVector(S, [Eltseq(M[n+1])[i]: i in [1..n]]);
         AddSection(~S, v, x, y);
     end if;
@@ -27,15 +30,18 @@ matrix [m,*;*,*] where m is current inner product matrix}
 
     /* Extend bases of lattices by zero */
     n := Rank(Frame(S));
-    M := Matrix([Eltseq(b) cat [0]: b in Basis(Frame(S))]);
+    r := MordellWeilRank(S);
+    int_mat := Matrix(Rationals(), int_mat);
+    
+    M := Matrix(Rationals(), [Eltseq(b) cat [0]: b in Basis(Frame(S))]);
     S`Frame := Lattice(M, int_mat);
-    M := Matrix([Eltseq(b) cat [0]: b in Basis(NeronSeveriRootSpan(S))]);
+    M := Matrix(Rationals(), [Eltseq(b) cat [0]: b in Basis(NeronSeveriRootSpan(S))]);
     S`RootSpan := Lattice(M, int_mat);
-    M := Matrix([Eltseq(b) cat [0]: b in Basis(RootLattice(S))]);
+    M := Matrix(Rationals(), [Eltseq(b) cat [0]: b in Basis(RootLattice(S))]);
     S`RootLat := Lattice(M, int_mat);
     M := Matrix(Rationals(), MordellWeilRank(S), n+1,
                 [Eltseq(b) cat [0]: b in Basis(MordellWeilLattice(S))]);
-    S`MWLat := Lattice(M, MatrixRing(Rationals(),n+1)!int_mat);
+    S`MWLat := Lattice(M, int_mat);
 
     /* Get new quotient groups */
     S`TorsGrp, S`TorsMap := quo < NeronSeveriRootSpan(S) | RootLattice(S) >;
@@ -45,7 +51,7 @@ matrix [m,*;*,*] where m is current inner product matrix}
     end for;
     S`MWGrp, S`MWMap := quo < Frame(S) | RootLattice(S) >;
     for i:=1 to MordellWeilRank(S) do
-        v := NSVector(TorsionSections(S)[i]);
+        v := NSVector(MordellWeilSections(S)[i]);
         S`MWSections[i]`Vec := FrameSpace(S) ! (Eltseq(v) cat [0]);
     end for;
 
@@ -93,7 +99,7 @@ intrinsic NSVector(S :: EllK3, pt :: PtEll) -> ModTupFldElt
 end intrinsic;
 
 
-intrinsic AddSection(~S :: EllK3, v :: ModTupFldElt, x :: RngUPolElt, y :: RngUPolElt)
+intrinsic AddSection(~S :: EllK3, v :: ModTupFldElt, x :: RngElt, y :: RngElt)
 
 {Let S know about a section (x,y) corresponding to the vector v in its NS ambient space}
 
@@ -191,18 +197,17 @@ intrinsic AddSection(~S :: EllK3, v :: ModTupFldElt, x :: RngUPolElt, y :: RngUP
 end intrinsic;
 
 
-intrinsic AddSection(~S :: EllK3, x :: RngUPolElt)
+intrinsic AddSection(~S :: EllK3, x :: RngElt)
 
 {Let S know about one of its Mordell-Weil sections}
 
     rhs := RHS(S, x);
-    R<v> := PolynomialRing(Parent(x));
-    b, y := SquareEquation(rhs, v);
-    if not b then
+    try
+        y := Sqrt(RHS(S, x));
+    catch e        
         error "Not the x-coordinate of a section";
-    else
-        AddSection(~S, x, y);
-    end if;
-
+    end try;
+    AddSection(~S, x, y);
+    
 end intrinsic;
 

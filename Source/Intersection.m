@@ -1,6 +1,6 @@
 
 
-intrinsic Intersection(fib :: EllK3RedFib, x :: RngUPolElt, y :: RngUPolElt)
+intrinsic Intersection(fib :: EllK3RedFib, x :: RngElt, y :: RngElt)
 	      -> RngIntElt
 
 {Return index of component where (x,y) intersects the given reducible fiber}
@@ -8,7 +8,20 @@ intrinsic Intersection(fib :: EllK3RedFib, x :: RngUPolElt, y :: RngUPolElt)
     if Place(fib) eq 0 then
         x := Reverse(x, 4);
         y := Reverse(y, 6);
+        Pl := Numerator(Parent(x).1);
+    else
+        Pl := Place(fib);
     end if;
+
+    /* If infinite, return 0 */
+    if IsDivisibleBy(Denominator(x), Pl) then
+        return 0;
+    end if;
+    
+    /* Convert to polynomials */
+    l, n := ParseRootLatticeType(RootType(fib));
+    x := SeriesExpansion(x, Pl, n+3);
+    y := SeriesExpansion(y, Pl, n+3); //Add some margin
     
     /* Get correct index in list of fiber components */
     i0 := 0;
@@ -33,7 +46,7 @@ end intrinsic;
 intrinsic IntersectionWithO(S :: EllK3, x :: PtEll) -> RngIntElt
 {Compute intersection number of x with the zero section}
     x, _, z := Explode(Eltseq(x));
-    return Degree(Denominator(x/z));
+    return Degree(Denominator(x/z))/2;
 end intrinsic;
 
 intrinsic Intersection(S :: EllK3, x1 :: PtEll, x2 :: PtEll) -> RngIntElt
@@ -48,12 +61,12 @@ lattice}
     end if;
     x1_O := IntersectionWithO(S, x1);
     x2_O := IntersectionWithO(S, x2);
-    return 2 + x1_O + x2_O - x1x2;    
+    return - 2 - x1_O - x2_O + x1x2;    
     
 end intrinsic;
 
 
-intrinsic Intersections(S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
+intrinsic Intersections(S :: EllK3, x :: RngElt, y :: RngElt)
 	      -> SeqEnum[RngIntElt]
 
 {Return intersection numbers of (x,y) with Néron--Severi basis of S}
@@ -103,15 +116,18 @@ intrinsic Intersections(S :: EllK3, pt :: PtEll) -> SeqEnum[RngIntElt]
 
 end intrinsic;
 
-intrinsic IntersectionMatrix(S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
+intrinsic IntersectionMatrix(S :: EllK3, x :: RngElt, y :: RngElt)
           -> AlgMatElt
 {Return the intersection numbers of (x,y) with a frame basis of S in matrix form}
+
+    x := BaseFunctionField(S)!x;
+    y := BaseFunctionField(S)!y;
     
     ints := Intersections(S, x, y);
     n := Dimension(FrameSpace(S));
     old_rows := Rows(InnerProductMatrix(Frame(S)));
     new_rows := [Eltseq(old_rows[i]) cat [ints[i]]: i in [1..n]];
     Append(~new_rows, ints);
-    return Matrix(new_rows);
+    return Matrix(Integers(), n+1, n+1, new_rows);
 
 end intrinsic;

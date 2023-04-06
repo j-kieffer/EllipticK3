@@ -35,7 +35,7 @@ assert #MordellWeilSections(S) eq 1;
 
 xy := MordellWeilSections(S)[1];
 assert NSVector(xy) in Frame(S);
-assert Section(xy) in EllipticCurve(S);
+assert GenericPoint(xy) in EllipticCurve(S);
 assert xCoordinate(xy) eq BaseFunctionField(S) ! X;
 assert yCoordinate(xy) eq BaseFunctionField(S) ! Y;
 assert Height(S, xy) eq 5/2;

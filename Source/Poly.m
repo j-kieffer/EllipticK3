@@ -112,3 +112,30 @@ intrinsic Reverse(f :: RngUPolElt, n :: RngIntElt) -> RngUPolElt
     return Parent(f)! Reverse(Coeffs);
 
 end intrinsic;
+
+
+intrinsic Reverse(f :: FldFunRatUElt, n :: RngIntElt) -> RngUPolElt
+{Return x^n * f(1/x)}
+    
+    t := Parent(f).1;
+    return t^n * Evaluate(f, 1/t);
+
+end intrinsic;
+
+
+intrinsic SeriesExpansion(f :: RngElt, Pl :: RngUPolElt, n :: RngIntElt)
+          -> RngUPolElt
+                 
+{Given a rational function whose denominator doesn't vanish at the given place,
+compute its expansion up to O(Pl^n)}
+
+    if Denominator(f) eq 1 then
+        return Numerator(f);
+    elif Gcd(Denominator(f), Pl) eq 1 then
+        _, a, _ := Xgcd(Denominator(f), Pl^n);
+        return ((Numerator(f) mod Pl^n) * a) mod Pl^n;
+    else
+        error "No pole allowed";
+    end if;
+    
+end intrinsic;
