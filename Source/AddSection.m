@@ -87,7 +87,8 @@ intrinsic NSVector(S :: EllK3, pt :: PtEll) -> ModTupFldElt
 
 {Return an element in NS lattice of S corresponding to the given section}
 
-    return Frame(S) ! NSVector(S, Intersections(S, pt));
+    n := Rank(Frame(S));
+    return Frame(S) ! NSVector(S, Intersections(S, pt)[1..n]);
 
 end intrinsic;
 
@@ -117,12 +118,20 @@ intrinsic AddSection(~S :: EllK3, v :: ModTupFldElt, x :: RngUPolElt, y :: RngUP
         new_torssections := [];
         
         for t in new_torsgrp do
+            if t eq 0*t then
+                continue;
+            end if;
             /* Write lift as (element in old NS) + k*v */
             lift := t @@ new_torsmap;
-            k := Index(redv, lift @ quomap);
-            pt1 := GenericPoint(S, lift-k*v);
+            k := Index(redv, lift @ quomap) - 1;
+            assert lift - k*v in NeronSeveriRootSpan(S);
             torssection := New(EllK3MW);
-            torssection`Pt := pt1 + k*pt;
+            if lift - k*v in RootLattice(S) then
+                torssection`Pt := k*pt;
+            else
+                pt1 := GenericPoint(S, lift-k*v);
+                torssection`Pt := pt1 + k*pt;
+            end if;
             torssection`Vec := NSVector(S, torssection`Pt);
             Append(~new_torssections, torssection);
         end for;
@@ -141,7 +150,7 @@ intrinsic AddSection(~S :: EllK3, v :: ModTupFldElt, x :: RngUPolElt, y :: RngUP
 
     /* Update MW lattice and generators */
     proj := MordellWeilProjection(S);
-    new_mwgen := v * proj;
+    new_mwgen := FrameSpace(S) ! (v * proj);
     new_mwlat := ext < MordellWeilLattice(S) | [new_mwgen] >;
     new_mwsections := [];
     old_mwbasis := [NSVector(u) * proj: u in MordellWeilSections(S)];

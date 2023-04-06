@@ -21,9 +21,9 @@ RootConfiguration(S);
 Determinant(RootLattice(S));
 
 //Let's add a Mordell--Weil section:
-//X1 := -a3/2*t*(t-1)^2;
-//Y1 := Sqrt(RHS(S,X1));
-//AddSection(~S, X1, Y1);
+X1 := -a3/2*t*(t-1)^2;
+Y1 := Sqrt(RHS(S,X1));
+AddSection(~S, X1, Y1);
 
 //We now add the other 2-torsion section
 Xtors := PolynomialRing(S)!0;

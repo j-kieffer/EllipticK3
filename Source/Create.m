@@ -69,7 +69,7 @@ intrinsic EllipticK3(Coeffs :: SeqEnum[RngUPolElt]:
     S`TorsGrp, S`TorsMap := quo < S`RootSpan | S`RootLat >;
     S`TorsSections := [];
     S`MWGrp, S`MWMap := quo < S`Frame | S`RootLat >;
-    S`MWLat := StandardLattice(0);
+    S`MWLat := sub < Frame(S) | [] >;
     S`MWProj := ZeroMatrix(Rationals(), Dimension(L));
     S`MWSections := [];
 

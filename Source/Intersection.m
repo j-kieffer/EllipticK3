@@ -66,8 +66,19 @@ intrinsic Intersections(S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
 	    i := Intersection(fib, x, y);
 	    l, n := ParseRootLatticeType(RootType(fib));
 	    int := [0: i in [1..n]];
-        if i gt 0 then
+        // This ordering comes from Magma's presentation of standard lattices
+        if l eq "A" and i ge 1 then
 	        int[i] := -1;
+        elif l eq "D" and i in [2,3] then
+            int[i-1] := -1;
+        elif l eq "D" and i eq 1 then
+            int[n] := -1;
+        elif l eq "E" and n eq 6 and i eq 1 then
+            int[1] := -1;
+        elif l eq "E" and n eq 6 and i eq 2 then
+            int[5] := -1;
+        elif l eq "E" and n eq 7 and i eq 1 then
+            int[1] := -1;
         end if;
 	    res cat:= int;
     end for;
@@ -82,6 +93,15 @@ intrinsic Intersections(S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
 
 end intrinsic;
 
+intrinsic Intersections(S :: EllK3, pt :: PtEll) -> SeqEnum[RngIntElt]
+
+{Return intersection numbers of the given section with Néron--Severi basis of S}
+    x, y, z := Explode(Coordinates(pt));
+    X := PolynomialRing(S) ! (x/z);
+    Y := PolynomialRing(S) ! (y/z);
+    return Intersections(S, X, Y);
+
+end intrinsic;
 
 intrinsic IntersectionMatrix(S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
           -> AlgMatElt
