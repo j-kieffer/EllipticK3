@@ -2,6 +2,7 @@
     RootLattices.m
     ReduciblePlaces.m
     Types.m
+    BaseExtend.m
     Poly.m
     Intersection.m
     AddSection.m

@@ -6,13 +6,14 @@ intrinsic AddSection(~S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
 
     require RHS(S,x) eq y^2: "Not a section";
 
+    n := Rank(Frame(S));
     M := IntersectionMatrix(S, x, y);
     if IsPositiveDefinite(M) then
         ExtendFrameSpace(~S, M);
-        v := FrameSpace(S) ! ([0]*n cat [1]);
+        v := FrameSpace(S) ! ([0: i in [1..n]] cat [1]);
         AddSection(~S, v, x, y);
     else
-        v := NSVector(S, intersections);
+        v := NSVector(S, [Eltseq(M[n+1])[i]: i in [1..n]]);
         AddSection(~S, v, x, y);
     end if;
 
@@ -25,14 +26,16 @@ intrinsic ExtendFrameSpace(~S :: EllK3, int_mat :: AlgMatElt)
 matrix [m,*;*,*] where m is current inner product matrix}
 
     /* Extend bases of lattices by zero */
+    n := Rank(Frame(S));
     M := Matrix([Eltseq(b) cat [0]: b in Basis(Frame(S))]);
     S`Frame := Lattice(M, int_mat);
     M := Matrix([Eltseq(b) cat [0]: b in Basis(NeronSeveriRootSpan(S))]);
     S`RootSpan := Lattice(M, int_mat);
     M := Matrix([Eltseq(b) cat [0]: b in Basis(RootLattice(S))]);
     S`RootLat := Lattice(M, int_mat);
-    M := Matrix([Eltseq(b) cat [0]: b in Basis(MordellWeilLattice(S))]);
-    S`MWLat := Lattice(M, int_mat);
+    M := Matrix(Rationals(), MordellWeilRank(S), n+1,
+                [Eltseq(b) cat [0]: b in Basis(MordellWeilLattice(S))]);
+    S`MWLat := Lattice(M, MatrixRing(Rationals(),n+1)!int_mat);
 
     /* Get new quotient groups */
     S`TorsGrp, S`TorsMap := quo < NeronSeveriRootSpan(S) | RootLattice(S) >;
@@ -48,31 +51,34 @@ matrix [m,*;*,*] where m is current inner product matrix}
 
     /* Get new orthogonal projection parallel to RootLat */
     _, mat := OrthogonalizeGram(GramMatrix(RootLattice(S)));
-    orth_basis := [Frame(S) ! v : v in mat * Matrix(Basis(RootLattice(S)))];
+    M := mat * Matrix(Basis(RootLattice(S)));
+    n := Rank(RootLattice(S));
+    orth_basis := [Frame(S) ! M[i]: i in [1..n]];
     d := Dimension(FrameSpace(S));
     rows := [];
     for i := 1 to d do
-        e := [0]*d;
+        e := [0: k in [1..d]];
         e[i] := 1;
         e := FrameSpace(S) ! e;
         row := e;
-        for v in orth_basis do
+        for k := 1 to n do
+            v := FrameSpace(S) ! orth_basis[k];
             row := row - InnerProduct(e, v)/InnerProduct(v, v)*v;
-            Append(~rows, Eltseq(row));
         end for;
+        Append(~rows, Eltseq(row));
     end for;
     S`MWProj := Matrix(rows);
 
 end intrinsic;
 
 
-intrinsic NSVector(S :: EllK3, int :: SeqEnum[FldRatElt]) -> ModTupFldElt
+intrinsic NSVector(S :: EllK3, int :: SeqEnum) -> ModTupFldElt
 
 {Return an element in NS(S)\otimes\Q that has the given intersections with
 basis elements}
 
-    mat := Matrix(Rationals(), InnerProductMatrix(L));
-    return Solution(mat, S`Ambient!int);
+    mat := Matrix(Rationals(), InnerProductMatrix(Frame(S)));
+    return Solution(mat, FrameSpace(S)!int);
 
 end intrinsic;
 
@@ -95,6 +101,7 @@ intrinsic AddSection(~S :: EllK3, v :: ModTupFldElt, x :: RngUPolElt, y :: RngUP
         return;
     end if;
 
+    S`Frame := new_frame;
     pt := EllipticCurve(S) ! [x,y];
 
     /* Update torsion sections */
@@ -111,8 +118,9 @@ intrinsic AddSection(~S :: EllK3, v :: ModTupFldElt, x :: RngUPolElt, y :: RngUP
         
         for t in new_torsgrp do
             /* Write lift as (element in old NS) + k*v */
-            k := Index(redv, (t @@ new_torsmap) @ quomap);
-            pt1 := Section(S, lift-k*v); // As point on elliptic curve over function field
+            lift := t @@ new_torsmap;
+            k := Index(redv, lift @ quomap);
+            pt1 := GenericPoint(S, lift-k*v);
             torssection := New(EllK3MW);
             torssection`Pt := pt1 + k*pt;
             torssection`Vec := NSVector(S, torssection`Pt);
@@ -142,7 +150,7 @@ intrinsic AddSection(~S :: EllK3, v :: ModTupFldElt, x :: RngUPolElt, y :: RngUP
         new_mwbasis := old_mwbasis cat [v*proj];
         vsection := New(EllK3MW);
         vsection`Pt := pt;
-        vsection`vec := v;
+        vsection`Vec := v;
         new_mwsections := MordellWeilSections(S) cat [vsection];
         S`MWLat := new_mwlat;
         S`MWSections := new_mwsections;
@@ -158,7 +166,7 @@ intrinsic AddSection(~S :: EllK3, v :: ModTupFldElt, x :: RngUPolElt, y :: RngUP
             coefs := Coordinates(MordellWeilLattice(S) ! (b - k*new_mwgen));
             mwpt := Zero(EllipticCurve(S));
             for i := 1 to #old_mwbasis do
-                mwpt +:= coefs[i] * Section(MordellWeilSections(S)[i]);
+                mwpt +:= coefs[i] * GenericPoint(MordellWeilSections(S)[i]);
             end for;
             mwpt +:= k*pt;
 

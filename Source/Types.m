@@ -62,6 +62,11 @@ intrinsic Frame(S :: EllK3) -> Lat
     return S`Frame;
 end intrinsic;
 
+intrinsic NeronSeveriDiscriminant(S :: EllK3) -> RngIntElt
+{Discriminant of the Néron--Severi lattice of S}
+    return Abs(Determinant(Frame(S)));
+end intrinsic;
+
 intrinsic NeronSeveriRootSpan(S :: EllK3) -> Lat
 {Part of Néron--Severi lattice of S contained in the span of roots}
     require assigned S`RootSpan: "Néron--Severi lattice not assigned";
@@ -233,7 +238,7 @@ intrinsic NSVector(x :: EllK3MW) -> LatElt
     return x`Vec;
 end intrinsic;
 
-intrinsic Section(x :: EllK3MW) -> PtEll
+intrinsic GenericPoint(x :: EllK3MW) -> PtEll
 {Return x as point on generic fiber of elliptic K3 surface}
     require assigned x`Pt: "Coordinates not assigned";
     return x`Pt;
@@ -244,7 +249,7 @@ end intrinsic;
 
 intrinsic Coordinates(x :: EllK3MW) -> SeqEnum[FldFunElt]
 {Return coordinates (x:y:z) of Mordell--Weil section}
-    return Coordinates(Section(x));
+    return Coordinates(GenericPoint(x));
 end intrinsic;
 
 intrinsic xCoordinate(x :: EllK3MW) -> FldFunElt
@@ -257,6 +262,11 @@ intrinsic yCoordinate(x :: EllK3MW) -> FldFunElt
 {Return affine y-coordinate of Mordell--Weil section}
     _, y, z := Explode(Coordinates(x));
     return y/z;
+end intrinsic;
+
+intrinsic Height(S :: EllK3, x :: EllK3MW) -> FldRatElt
+{Return the height of x in the Mordell--Weil lattice}
+    return Norm(NSVector(x) * MordellWeilProjection(S));
 end intrinsic;
 
 
@@ -286,8 +296,8 @@ end intrinsic;
 
 intrinsic Print(x :: EllK3MW)
 {Print x}
-    printf "Mordell--Weil section with coordinates";
-    printf "x = %o", xCoordinate(x);
-    printf "y = %o", yCoordinate(x);
+    printf "Mordell--Weil section with coordinates\n";
+    printf "x = %o\n", xCoordinate(x);
+    printf "y = %o\n", yCoordinate(x);
     printf "Néron--Severi vector: %o", NSVector(x);
 end intrinsic;

@@ -14,7 +14,7 @@ Y := 1/8*t^3*(1+2*h*t)*((1+2*h*t)^2+6*g);
 assert Y^2 eq RHS(S,X);
 
 F0 := ReducibleFiber(S, t);
-assert Intersection(S, F0, X, Y) eq 1;
+assert Intersection(F0, X, Y) eq 1;
 assert IsPositiveDefinite(IntersectionMatrix(S,X,Y));
 
 /* Hilbert D=13 */
@@ -25,9 +25,9 @@ S := EllipticK3([(4*g+1)*t^2, -4*g*(h-g-1)*(t-1)*t^3, 4*g^2*(t-1)^2*t^4*(h^2*t+1
 X := (t-1)*t^2*((2-h)*h + h^2*t);
 Y := t^2*(t-1)*(h^3*t^3 -h^2*(2*h-3)*t^2 + h*(h^2-3*h+2*g+2)*t + 2*g);
 F, F0, F1 := Explode(ReducibleFibers(S));
-assert Intersection(S, F, X, Y) eq 0;
-assert Intersection(S, F0, X, Y) in [1,2];
-assert Intersection(S, F1, X, Y) eq 1;
+assert Intersection(F, X, Y) eq 0;
+assert Intersection(F0, X, Y) in [1,2];
+assert Intersection(F1, X, Y) eq 1;
 
 /* Hilbert D=28 */
 
@@ -41,9 +41,9 @@ S := EllipticK3([a*t, b*t^2*(t-1)^2, c*t^3*(t-1)^4]);
 X := P!0;
 Y := Sqrt(RHS(S,X));
 F, F0, F1 := Explode(ReducibleFibers(S));
-assert Intersection(S, F, X, Y) in [1,2];
-assert Intersection(S, F0, X, Y) eq 1;
-assert Intersection(S, F1, X, Y) in [2,3];
+assert Intersection(F, X, Y) in [1,2];
+assert Intersection(F0, X, Y) eq 1;
+assert Intersection(F1, X, Y) in [2,3];
 
 /* Hilbert D=29 */
 
@@ -57,8 +57,8 @@ t := EllipticParameter(S);
 X := t*(-(f-1)*g/f + g*(g-4*f)/(4*f^2)*t);
 Y := Sqrt(RHS(S,X));
 F, F0 := Explode(ReducibleFibers(S));
-assert Intersection(S, F, X, Y) eq 1;
-assert Intersection(S, F0, X, Y) in [1,8];
+assert Intersection(F, X, Y) eq 1;
+assert Intersection(F0, X, Y) in [1,8];
 
 /* Hilbert D=37 */
 
@@ -75,9 +75,9 @@ S := EllipticK3([a*t, b*t^2*(t-1)^2, c*t^3*(t-1)^4]);
 X := r0*t*(1-t);
 Y := Sqrt(RHS(S,X));
 F, F0, F1 := Explode(ReducibleFibers(S));
-assert Intersection(S, F, X, Y) in [1,2];
-assert Intersection(S, F0, X, Y) in [2,3];
-assert Intersection(S, F1, X, Y) in [1,4];
+assert Intersection(F, X, Y) in [1,2];
+assert Intersection(F0, X, Y) in [2,3];
+assert Intersection(F1, X, Y) in [1,4];
 
 /* Hilbert D=41 */
 
@@ -98,8 +98,8 @@ X := -4*r*s*t;
 Y := Sqrt(RHS(S,X));
 
 F, F0 := Explode(ReducibleFibers(S));
-assert Intersection(S,F0,X,Y) in [1,5];
-assert Intersection(S,F,X,Y) in [4,7];
+assert Intersection(F0,X,Y) in [1,5];
+assert Intersection(F,X,Y) in [4,7];
 
 /* Hilbert D=56 */
 
@@ -137,10 +137,10 @@ X1 := -a3/2*t*(t-1)^2;
 Y1 := Sqrt(RHS(S,X1));
 // Compute second section X2, Y2?
 F, F0, F1, Fa := Explode(ReducibleFibers(S));
-assert Intersection(S,F,X1,Y1) in [2,3];
-assert Intersection(S,F0,X1,Y1) in [1,5];
-assert Intersection(S,F1,X1,Y1) eq 2;
-assert Intersection(S,Fa,X1,Y1) eq 0;
+assert Intersection(F,X1,Y1) in [2,3];
+assert Intersection(F0,X1,Y1) in [1,5];
+assert Intersection(F1,X1,Y1) eq 2;
+assert Intersection(Fa,X1,Y1) eq 0;
 
 /* Hilbert D=88 */
 
@@ -166,6 +166,30 @@ S := EllipticK3([a0+a1*t+a2*t^2+a3*t^3,
 F, F0, F1 := Explode(ReducibleFibers(S));
 X := P!0;
 Y := Sqrt(RHS(S,X));
-assert Intersection(S,F,X,Y) ne 0;
-assert Intersection(S,F0,X,Y) in [2,8];
-assert Intersection(S,F1,X,Y) in [2,3];
+assert Intersection(F,X,Y) ne 0;
+assert Intersection(F0,X,Y) in [2,8];
+assert Intersection(F1,X,Y) in [2,3];
+
+/* A section of naive height 6: CM -657 on Shimura N=57, also with non-rat'l fibers */
+
+P<t> := PolynomialRing(Rationals());
+r := -7/4;
+p := 4*(r-1)*(r^2-2)+1;
+d := (r^2-1)^2*(9*t+(2*r-1)*p);
+c := 9*t^2-(2*r-1)*(8*r^2+4*r-22)*t + (2*r-1)^2*p;
+b := (t-(r^2-2*r))*c+d;
+a := (t-(r^2-2*r))^2*c + 2*(t-(r^2-2*r))*d + (r^2-1)^4*((4*r+4)*t+p);
+S := EllipticK3([a, 8*(r-1)^4*(r+1)^5*b*t^2, 16*(r-1)^8*(r+1)^10*c*t^4]);
+//K := NumberField(t^2 + 12791689371/1048576);
+//S2 := BaseExtend(S, K: ComputeReducibleFibers := false);
+F, F0 := Explode(ReducibleFibers(S));
+X1 := -4*(r-1)^4*(r+1)^5*(2*r-1)*t^2/(r^2-r+1)^2
+      + 4*(r-2)*(r+1)^4*t^3/(r^2-r+1);
+Y1 := Sqrt(RHS(S,X1));
+assert Intersection(F,X1,Y1) in [1,11];
+assert Intersection(F0,X1,Y1) eq 3;
+
+q := 419430400*t^5 + 2846883840*t^4 + 17148174336*t^3 + 78784560576*t^2 +
+     175272616341*t - 12882888;
+X2 := 3^5*11^4*t^2*q/(2^12*(81920*t^3 + 9216*t^2 + 23868*t + 39339)^2);
+Y2 := Sqrt(RHS(S,X2));

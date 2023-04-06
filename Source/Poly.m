@@ -48,7 +48,7 @@ intrinsic MultipleRoot(pol :: RngUPolElt, n :: RngIntElt) -> FldElt
 end intrinsic;
 
 
-intrinsic SquareEquation(r::RngElt, v::RngElt) -> Bool, RngElt
+intrinsic SquareEquation(r::RngElt, v::RngElt) -> Bool, SeqEnum[RngElt]
 
 {If r is a square, output true and a square root. If not, construct a
 polynomial equation ensuring that r will be a square, using variable v}
@@ -57,7 +57,7 @@ polynomial equation ensuring that r will be a square, using variable v}
     fac := Factorization(pol);
     
     if #fac eq 2 then return true, DegreeOneRoot(fac[1][1]);
-    else return false, pol;
+    else return false, [pol];
     end if;
     
 end intrinsic;

@@ -16,10 +16,22 @@ intrinsic ReducibleFiber(S :: EllK3, Pl :: RngUPolElt) -> EllK3RedFib
         F := New(EllK3RedFib);
         F`Pl := Pl;
         F`Kodaira := KodairaType(S, Pl);
-        if HasRationalComponents(S, Pl, KodairaType(F)) then
+        b, eqs := HasRationalComponents(S, Pl, KodairaType(F));
+        if b then
             F`Fld := BaseField(S);
 	        F`Comps := Tate(S, Pl, KodairaType(F));
+        elif #eqs eq 1 then
+            if BaseField(S) eq Rationals() or IsNumberField(BaseField(S)) then
+                K := NumberField(eqs[1]);
+            else
+                K := FieldOfFractions(quo<PolynomialRing(S) | eqs[1]>);
+            end if;            
+            AssignNames(~K, ["a"]);
+            S2 := BaseExtend(S, K: ComputeReducibleFibers:=false);
+            F`Fld := K;
+            F`Comps := Tate(S2, PolynomialRing(S2)!Pl, KodairaType(F));
         end if;
+        //Todo: implement D4 in case of non-rational components.
         return F;
     end if;
     

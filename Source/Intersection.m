@@ -1,13 +1,9 @@
 
 
-intrinsic Intersection(S :: EllK3, fib :: EllK3RedFib,
-                       x :: RngUPolElt, y :: RngUPolElt)
+intrinsic Intersection(fib :: EllK3RedFib, x :: RngUPolElt, y :: RngUPolElt)
 	      -> RngIntElt
 
 {Return index of component where (x,y) intersects the given reducible fiber}
-
-    require FieldOfRationality(fib) eq BaseField(S): "Not implemented for
-    non-rational fibers";
 
     if Place(fib) eq 0 then
         x := Reverse(x, 4);
@@ -34,6 +30,11 @@ intrinsic Intersection(S :: EllK3, fib :: EllK3RedFib,
 
 end intrinsic;
 
+intrinsic IntersectionWithO(S :: EllK3, x :: PtEll) -> RngIntElt
+{Compute intersection number of x with the zero section}
+    x, _, z := Explode(Eltseq(x));
+    return Degree(Denominator(x/z));
+end intrinsic;
 
 intrinsic Intersection(S :: EllK3, x1 :: PtEll, x2 :: PtEll) -> RngIntElt
 								                                    
@@ -43,11 +44,10 @@ lattice}
     if x1 eq x2 then
 	    x1x2 := -2;
     else
-	    x,_,_ := Explode(Coordinates(x1-x2));
-	    int := Degree(Denominator(x));
+        x1x2 := IntersectionWithO(S, x1-x2);
     end if;
-    x1_O := Degree(Denominator(x1));
-    x2_O := Degree(Denominator(x2));
+    x1_O := IntersectionWithO(S, x1);
+    x2_O := IntersectionWithO(S, x2);
     return 2 + x1_O + x2_O - x1x2;    
     
 end intrinsic;
@@ -59,10 +59,11 @@ intrinsic Intersections(S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
 {Return intersection numbers of (x,y) with Néron--Severi basis of S}
 
     res := [];
+    pt := GenericFiber(S) ! [x,y];
 
     // Get intersections with fiber components
     for fib in ReducibleFibers(S) do
-	    i := Intersection(S, fib, x, y);
+	    i := Intersection(fib, x, y);
 	    l, n := ParseRootLatticeType(RootType(fib));
 	    int := [0: i in [1..n]];
         if i gt 0 then
@@ -73,10 +74,9 @@ intrinsic Intersections(S :: EllK3, x :: RngUPolElt, y :: RngUPolElt)
 
     // Get intersections with Mordell-Weil
     for sec in MordellWeilSections(S) do
-	    xs, ys, zs := Explode(Eltseq(sec`Pt));
-	    Append(~res, -Intersection(S, xs/zs, ys/zs, x, y));
+	    Append(~res, -Intersection(S, pt, GenericPoint(sec)));
     end for;
-    Append(~res, Degree(Numerator(x)));
+    Append(~res, 4 + Degree(Denominator(x)));
     
     return res;
 
