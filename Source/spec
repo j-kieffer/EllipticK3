@@ -5,6 +5,7 @@
     BaseExtend.m
     Poly.m
     Intersection.m
+    Neighbors.m
     AddSection.m
     Create.m
     ReducibleFiber.m
