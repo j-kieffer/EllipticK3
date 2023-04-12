@@ -139,3 +139,40 @@ compute its expansion up to O(Pl^n)}
     end if;
     
 end intrinsic;
+
+
+intrinsic ReduceCoefficients(f :: RngMPolElt, g :: RngUPolElt) -> RngElt
+                                                                      
+{Given f, a multivariate polynomial over a univariate polynomial ring, return
+the polynomial obtained by reducing all the coefficients of f modulo g}
+
+    P := Parent(f);
+    C, M := CoefficientsAndMonomials(f);
+    res := P!0;
+    for i:=1 to #C do
+        res +:= (C[i] mod g) * M[i];
+    end for;
+    return res;
+    
+end intrinsic;
+
+
+intrinsic CoefficientsInT(f :: RngMPolElt) -> SeqEnum
+
+{Given f, a multivariate polynomial over a univariate polynomial ring in t,
+return the sequence of coefficients of f with respect to t}
+
+    P := Parent(f);
+    C, M := CoefficientsAndMonomials(f);
+    m := Max([Degree(c): c in C]);
+    res := [P| ];
+    for i:=0 to m do
+        r := P!0;
+        for j:=1 to #C do
+            r +:= Coefficient(C[j], i) * M[j];
+        end for;
+        Append(~res, r);
+    end for;
+    return res;             
+    
+end intrinsic;

@@ -1,12 +1,14 @@
 
-intrinsic All2Neighbors(L :: Lat) -> SeqEnum[LatElt]
+intrinsic EvenOrbits(L :: Lat) -> SeqEnum[LatElt]
                                             
 {Compute representatives of L/2L modulo Aut(L)}
     
     G := AutomorphismGroup(L);
     G2 := ChangeRing(G, GF(2));
     orbs := OrbitsOfSpaces(G2, 1);
-    return [L!0] cat [L ! (Basis(o[2])[1]): o in orbs];
+    res := [L ! (Basis(o[2])[1]): o in orbs];
+    res := [v: v in res | Norm(v) mod 4 eq 0];
+    return res;
     
 end intrinsic;
 
@@ -70,12 +72,25 @@ intrinsic IsEffective(S :: EllK3, v :: LatElt, a :: RngIntElt) -> Bool, SeqEnum[
     
 end intrinsic;
 
-intrinsic EllipticDivisors(S :: EllK3, v0 :: LatElt, a :: RngIntElt) -> SeqEnum[LatElt]
+intrinsic EllipticDivisors(L :: Lat, v0 :: LatElt, a :: RngIntElt) -> SeqEnum[LatElt]
                                                                                
 {Return the elliptic divisors F' such that F'.F = 2 and F'.O = a-2}
     
-    vs := [v[1]: v in CloseVectors(Frame(S), -1/2*v0, a, a)];
-    return [v0 + 2*v: v in vs | IsEffective(S, v0 + 2*v, a)];
+    vs := [v[1]: v in CloseVectors(L, -1/2*v0, a, a)];
+    //Quotient by action of automorphism group.
+    G := AutomorphismGroup(L);
+    Gmod2, Gred := ChangeRing(G, GF(2));
+    S := Stabilizer(Gmod2, VectorSpace(Gmod2) ! v0) @@ Gred;
+    all := [v0 + 2*v: v in vs];  //| IsEffective(S, v0 + 2*v, a)];
+    res := [];
+    while all ne [] do
+        v := all[1];
+        orb := Orbit(S, v);
+        assert orb subset all;
+        all := [w: w in all | not w in orb];
+        Append(~res, v);
+    end while;
+    return res;
     
 end intrinsic;
 
@@ -140,4 +155,159 @@ intrinsic SubgraphDivisors(S :: EllK3, v0 :: LatElt, a :: RngIntElt) -> SeqEnum[
     end for;
     return res;
 
+end intrinsic;
+
+intrinsic NewEllipticParameter(S :: EllK3, v :: LatElt, a :: RngIntElt) -> RngElt
+
+{Given an elliptic divisor of the form v + 2O + (2+a)F, compute a new elliptic
+parameter for its associated 2-neighbor step.}
+
+    //Setup
+    P := PolynomialRing(S);
+    num_degree := 2+a;
+    Q := PolynomialRing(P, 2*num_degree);
+    AssignNames(~Q, ["x", "y"] cat ["a" cat Sprint(i): i in [1..(2*num_degree - 2)]]);
+    x := Q.1;
+    y := Q.2;
+    den := Q!1;
+    
+    //Non-torsion sections
+    d := Dimension(RootLattice(S));
+    r := MordellWeilRank(S);
+    for i:=d+1 to d+r do
+        if v[i] ne 0 then
+            error "Not implemented if non-torsion sections are present";
+        end if;
+    end for;
+    assert v in NeronSeveriRootSpan(S);
+
+    //Torsion sections
+    if not v in RootLattice(S) then
+        tors := [s : s in TorsionSections(S) | NSVector(s) - v in RootLattice(S)][1];
+        error "Not implemented if torsion sections are present";
+    end if;
+    assert v in RootLattice(S);
+
+    //Distribute (2+a)F to make v + (2+a)F effective
+    n := #ReducibleFibers(S);
+    k := 1;
+    f := [];
+    for i:=1 to n do
+        F := ReducibleFibers(S)[i];
+        L := RootLattice(KodairaType(F));
+        d := Dimension(L);
+        w := L ! [v[j]: j in [k..(k+d-1)]];
+        w0 := FiberDivisor(F); //negative entries
+        Append(~f, Ceiling(Maximum([0] cat [w[j]/w0[j]: j in [1..d]])));
+        k +:= d;
+    end for;
+    assert k eq Dimension(RootLattice(S)) + 1;
+    rest := 2+a - (&+f);
+    assert rest ge 0;
+    f[1] +:= rest;
+
+    //Add multiples of fiber divisors
+    /* k := 1; */
+    /* newv := Eltseq(v); */
+    /* for i:=1 to n do */
+    /*     F := ReducibleFibers(S)[i]; */
+    /*     _, d := ParseRootLatticeType(RootType(F)); */
+    /*     w0 := FiberDivisor(F); */
+    /*     for j:=1 to d do */
+    /*         newv[k-1+j] +:= - f[i] * w0[j]; */
+    /*         assert newv[k-1+j] ge 0; */
+    /*     end for; */
+    /*     k +:= d; */
+    /* end for; */
+    /* assert k eq Dimension(RootLattice(S)) + 1; */
+    /* v := RootLattice(S) ! newv; */
+
+    //Compute denominator
+    for i:=1 to n do
+        F := ReducibleFibers(S)[i];
+        if not IsZero(Place(F)) then
+            den *:= Q ! Place(F)^(f[i]);
+        end if;
+    end for;
+    
+    //Sections take the form (a(t)x + b(t))/den
+    section := Q!0;
+    t := EllipticParameter(S);
+    for i:=0 to num_degree do
+        section +:= Q.(i+3) * t^i;
+    end for;
+    for i := 0 to num_degree - 4 do
+        section +:= Q.(i+3 + num_degree + 1) * t^i * x;
+    end for;
+    section := 1/den * section;
+
+    //Collect linear equations in ai
+    eqlist := [];
+    k := 1;
+    for i:=1 to n do
+        if f[i] eq 0 then continue; end if;
+        F := ReducibleFibers(S)[i];
+        pl := Place(F);
+        _, d := ParseRootLatticeType(RootType(F));
+        if IsZero(pl) then
+            error "Not implemented for place at infinity";
+        end if;
+        for j:=1 to d do
+            comp := Component(F, j);
+            x0, m := Explode(comp[1..2]);
+            val := -v[k-1+j];
+            ev := SeriesExpansion(section * pl^(f[i]), pl, val);
+            ev := Evaluate(ev, x, x0 + m*x);
+            ev := ReduceCoefficients(ev, pl^val);
+            //Now ev must be identically zero.
+            coefs := CoefficientsInT(ev);
+            for c in coefs do
+                eqlist cat:= Coefficients(c, x); //what about y?
+            end for;
+        end for;
+        k +:= d;
+    end for;
+    assert k eq Dimension(RootLattice(S)) + 1;
+
+    //Build linear system
+    nrows := 2*num_degree - 2;
+    ncols := #eqlist;
+    mat := ZeroMatrix(BaseField(S), nrows, ncols);
+    for i:=1 to ncols do
+        coefs, monomials := CoefficientsAndMonomials(eqlist[i]);
+        for j:=1 to #coefs do
+            assert Degree(monomials[j]) eq 1;
+            k := Index([Q.(l+2) : l in [1..nrows]], monomials[j]);
+            mat[k,i] := coefs[j];
+        end for;
+    end for;
+
+    //Solve; we should find a 2-dimensional space of sections
+    sols := Basis(NullSpace(mat)); //Should be echelonized; simplify?
+    assert #sols eq 2;
+    sec1 := Numerator(section);
+    sec2 := Numerator(section);    
+    for i:=1 to nrows do
+        sec1 := Evaluate(sec1, Q.(i+2), sols[1][i]);
+        sec2 := Evaluate(sec2, Q.(i+2), sols[2][i]);
+    end for;
+
+    //Convert to nicer field
+    R<x,y> := RationalFunctionField(PolynomialRing(S), 2);
+    s1 := R!0;
+    s2 := R!0;
+    c1, m1 := CoefficientsAndMonomials(sec1);
+    for i:=1 to #c1 do
+        k := Degree(m1[i], Q.1);
+        l := Degree(m1[i], Q.2);
+        s1 +:= c1[i] * x^k * y^l;
+    end for;
+    c2, m2 := CoefficientsAndMonomials(sec2);
+    for i:=1 to #c2 do
+        k := Degree(m2[i], Q.1);
+        l := Degree(m2[i], Q.2);
+        s2 +:= c2[i] * x^k * y^l;
+    end for;
+    return s2/s1;    
+    
 end intrinsic;

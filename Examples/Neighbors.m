@@ -7,30 +7,27 @@ c := r*s^2*t^7;
 S := EllipticK3([a,b,c]);
 RootConfiguration(S);
 L := Frame(S);
-Basis(L);
+L;
 
-p1Fp := L![0,0,0,0,0,0,0,-4,-4,-7,-6,-5,-4,-3,-2,-1];
+fp := L![0,0,0,0,0,0,0,-4,-4,-7,-6,-5,-4,-3,-2,-1];
 Q, Qmap := quo<L|2*L>;
-v0 := (p1Fp@Qmap)@@Qmap;
-vp := L!((p1Fp-v0)/2);
-assert p1Fp eq v0 + 2*vp;
+v0 := (fp@Qmap)@@Qmap;
+vp := L!((fp-v0)/2);
+assert fp eq v0 + 2*vp;
 a := 2;           
-assert Norm(p1Fp) mod 4 eq 0;
+assert Norm(fp) eq 4*a;
 
 G := AutomorphismGroup(L);
-G2 := ChangeRing(G, GF(2));
+G2, Gred := ChangeRing(G, GF(2));
 orbs := OrbitsOfSpaces(G2,1);
 norms := [Norm(L ! (Basis(o[2])[1])): o in orbs];
-vs := All2Neighbors(L);
-for v in vs do
-    v;
-    EllipticDivisors(S, v, 1);
-    EllipticDivisors(S, v, 2);
-end for;
 
-for v in vs do
-    v;
-    SubgraphDivisors(S, v, 1);
-    SubgraphDivisors(S, v, 2);
-end for;
-v := L ! [0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1];
+AttachSpec("spec");
+L := DirectSum(RootLattice("E7"), RootLattice("D9"));
+v0s := EvenOrbits(L);
+#v0s;
+for v0 in v0s do print(v0); print(EllipticDivisors(L, v0, 2)); end for;
+
+    
+    
+    
