@@ -10,10 +10,10 @@ S := EllipticK3([t, 2*r^2*t^3*(t-1), r^4*t^5*(t-1)^2]:
 F := ReducibleFiber(S, t);
 assert RootType(F) eq RootLatticeType("D7");
 Comps := Components(F);
-x,uk,y1 := Explode(Comps[2]);
+x,uk,y1 := Explode(Comps[1]);
 assert x eq r^2*t^2;
 assert uk eq t^3;
-x,uk,y2 := Explode(Comps[3]);
+x,uk,y2 := Explode(Comps[2]);
 assert x eq r^2*t^2;
 assert uk eq t^3;
 assert y2 eq -y1;

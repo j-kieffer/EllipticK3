@@ -28,16 +28,12 @@ intrinsic Intersection(fib :: EllK3RedFib, x :: RngElt, y :: RngElt)
     m := 0;
     for i := 1 to #Components(fib) do
 	    comp := Component(fib, i);
-	    x0, mx := Explode(comp[1..2]);
-	    b, q := IsDivisibleBy(x-x0, mx);
-	    if b and #comp gt 2 then
-	        y0, y1, my := Explode(comp[3..5]);
-	        b := IsDivisibleBy(y - y0 - y1*x, my);
-	    end if;
-	    if b and mx gt m then
-	        i0 := i;
-            m := mx;
-	    end if;
+	    x0, mx, y0, y1, my := Explode(comp);
+	    if IsDivisibleBy(x-x0, mx) and IsDivisibleBy(y - y0 - y1*x, my)
+           and (mx+my) gt m then
+            i0 := i;
+            m := (mx+my);
+        end if;
     end for;
     return i0;
 
@@ -78,20 +74,9 @@ intrinsic Intersections(S :: EllK3, x :: RngElt, y :: RngElt)
     for fib in ReducibleFibers(S) do
 	    i := Intersection(fib, x, y);
 	    l, n := ParseRootLatticeType(RootType(fib));
-	    int := [0: i in [1..n]];
-        // This ordering comes from Magma's presentation of standard lattices
-        if l eq "A" and i ge 1 then
-	        int[i] := -1;
-        elif l eq "D" and i in [2,3] then
-            int[i-1] := -1;
-        elif l eq "D" and i eq 1 then
-            int[n] := -1;
-        elif l eq "E" and n eq 6 and i eq 1 then
-            int[1] := -1;
-        elif l eq "E" and n eq 6 and i eq 2 then
-            int[5] := -1;
-        elif l eq "E" and n eq 7 and i eq 1 then
-            int[1] := -1;
+	    int := [0: j in [1..n]];
+        if i ge 1 then
+            int[i] := -1;
         end if;
 	    res cat:= int;
     end for;

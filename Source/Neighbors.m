@@ -157,13 +157,14 @@ intrinsic SubgraphDivisors(S :: EllK3, v0 :: LatElt, a :: RngIntElt) -> SeqEnum[
 
 end intrinsic;
 
-intrinsic NewEllipticParameter(S :: EllK3, v :: LatElt, a :: RngIntElt) -> RngElt
+intrinsic NewEllipticParameter(S :: EllK3, v :: LatElt) -> RngElt
 
 {Given an elliptic divisor of the form v + 2O + (2+a)F, compute a new elliptic
 parameter for its associated 2-neighbor step.}
 
     //Setup
     P := PolynomialRing(S);
+    a := ExactQuotient(Norm(v), 4);
     num_degree := 2+a;
     Q := PolynomialRing(P, 2*num_degree);
     AssignNames(~Q, ["x", "y"] cat ["a" cat Sprint(i): i in [1..(2*num_degree - 2)]]);
@@ -206,22 +207,6 @@ parameter for its associated 2-neighbor step.}
     assert rest ge 0;
     f[1] +:= rest;
 
-    //Add multiples of fiber divisors
-    /* k := 1; */
-    /* newv := Eltseq(v); */
-    /* for i:=1 to n do */
-    /*     F := ReducibleFibers(S)[i]; */
-    /*     _, d := ParseRootLatticeType(RootType(F)); */
-    /*     w0 := FiberDivisor(F); */
-    /*     for j:=1 to d do */
-    /*         newv[k-1+j] +:= - f[i] * w0[j]; */
-    /*         assert newv[k-1+j] ge 0; */
-    /*     end for; */
-    /*     k +:= d; */
-    /* end for; */
-    /* assert k eq Dimension(RootLattice(S)) + 1; */
-    /* v := RootLattice(S) ! newv; */
-
     //Compute denominator
     for i:=1 to n do
         F := ReducibleFibers(S)[i];
@@ -245,18 +230,26 @@ parameter for its associated 2-neighbor step.}
     eqlist := [];
     k := 1;
     for i:=1 to n do
-        if f[i] eq 0 then continue; end if;
         F := ReducibleFibers(S)[i];
         pl := Place(F);
         _, d := ParseRootLatticeType(RootType(F));
+        if f[i] eq 0 then
+            k +:= d;
+            continue;
+        end if;
         if IsZero(pl) then
-            error "Not implemented for place at infinity";
+            sec := ReverseCoefficients(section);
+            sec := Evaluate(sec, x, x/t^4);
+            sec := Evaluate(sec, y, y/t^6);
+            pl := t;
+        else
+            sec := section;
         end if;
         for j:=1 to d do
             comp := Component(F, j);
             x0, m := Explode(comp[1..2]);
-            val := -v[k-1+j];
-            ev := SeriesExpansion(section * pl^(f[i]), pl, val);
+            val := Max(0, f[i] + f[i]*FiberDivisor(F)[j] - v[k-1+j]);
+            ev := SeriesExpansion(sec * pl^(f[i]), pl, val);
             ev := Evaluate(ev, x, x0 + m*x);
             ev := ReduceCoefficients(ev, pl^val);
             //Now ev must be identically zero.
@@ -285,12 +278,17 @@ parameter for its associated 2-neighbor step.}
     //Solve; we should find a 2-dimensional space of sections
     sols := Basis(NullSpace(mat)); //Should be echelonized; simplify?
     assert #sols eq 2;
+    //Pick out any non-constant one
     sec1 := Numerator(section);
     sec2 := Numerator(section);    
     for i:=1 to nrows do
         sec1 := Evaluate(sec1, Q.(i+2), sols[1][i]);
         sec2 := Evaluate(sec2, Q.(i+2), sols[2][i]);
     end for;
+    if Degree(sec2) eq 0 then
+        sec2 := sec1;
+    end if;
+    sec1 := den;
 
     //Convert to nicer field
     R<x,y> := RationalFunctionField(PolynomialRing(S), 2);

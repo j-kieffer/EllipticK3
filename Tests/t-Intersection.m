@@ -1,5 +1,5 @@
 
-/* Hilbert D=5 */
+/* Hilbert D=5: E7 + E8 + section */
 
 A<g,h> := PolynomialRing(Rationals(), 2);
 P<t> := PolynomialRing(A);
@@ -17,7 +17,7 @@ F0 := ReducibleFiber(S, t);
 assert Intersection(F0, X, Y) eq 1;
 assert IsPositiveDefinite(IntersectionMatrix(S,X,Y));
 
-/* Hilbert D=13 */
+/* Hilbert D=13: E8 + E6 + A1 + section */
 
 A<g,h> := PolynomialRing(Rationals(), 2);
 P<t> := PolynomialRing(A);
@@ -26,10 +26,10 @@ X := (t-1)*t^2*((2-h)*h + h^2*t);
 Y := t^2*(t-1)*(h^3*t^3 -h^2*(2*h-3)*t^2 + h*(h^2-3*h+2*g+2)*t + 2*g);
 F, F0, F1 := Explode(ReducibleFibers(S));
 assert Intersection(F, X, Y) eq 0;
-assert Intersection(F0, X, Y) in [1,2];
+assert Intersection(F0, X, Y) in [1,5];
 assert Intersection(F1, X, Y) eq 1;
 
-/* Hilbert D=28 */
+/* Hilbert D=28: E6 + D5 + A4 + section */
 
 A<f,g> := PolynomialRing(Rationals(), 2);
 P<t> := PolynomialRing(A);
@@ -41,11 +41,11 @@ S := EllipticK3([a*t, b*t^2*(t-1)^2, c*t^3*(t-1)^4]);
 X := P!0;
 Y := Sqrt(RHS(S,X));
 F, F0, F1 := Explode(ReducibleFibers(S));
-assert Intersection(F, X, Y) in [1,2];
-assert Intersection(F0, X, Y) eq 1;
+assert Intersection(F, X, Y) in [1,5];
+assert Intersection(F0, X, Y) eq 5;
 assert Intersection(F1, X, Y) in [2,3];
 
-/* Hilbert D=29 */
+/* Hilbert D=29: E7 + A8 + section */
 
 A<f,g> := PolynomialRing(Rationals(), 2);
 P<t> := PolynomialRing(A);
@@ -60,7 +60,7 @@ F, F0 := Explode(ReducibleFibers(S));
 assert Intersection(F, X, Y) eq 1;
 assert Intersection(F0, X, Y) in [1,8];
 
-/* Hilbert D=37 */
+/* Hilbert D=37: E6 + D5 + A4 + section */
 
 A<f,g> := PolynomialRing(Rationals(), 2);
 P<t> := PolynomialRing(A);
@@ -75,11 +75,11 @@ S := EllipticK3([a*t, b*t^2*(t-1)^2, c*t^3*(t-1)^4]);
 X := r0*t*(1-t);
 Y := Sqrt(RHS(S,X));
 F, F0, F1 := Explode(ReducibleFibers(S));
-assert Intersection(F, X, Y) in [1,2];
-assert Intersection(F0, X, Y) in [2,3];
+assert Intersection(F, X, Y) in [1,5];
+assert Intersection(F0, X, Y) in [1,2];
 assert Intersection(F1, X, Y) in [1,4];
 
-/* Hilbert D=41 */
+/* Hilbert D=41: A5 + A10 + section */
 
 A<r,s> := PolynomialRing(Rationals(), 2);
 P<t> := PolynomialRing(A);
@@ -101,25 +101,7 @@ F, F0 := Explode(ReducibleFibers(S));
 assert Intersection(F0,X,Y) in [1,5];
 assert Intersection(F,X,Y) in [4,7];
 
-/* Hilbert D=56 */
-
-A<g,h> := PolynomialRing(Rationals(), 2);
-P<t> := PolynomialRing(A);
-
-la := (2*h - g^2 + 1);
-mu := -2*h;
-c := -(g^2-1)^2*( 4*(g^2-1)*t-(h+2)^2);
-b := (g^2-1)*( 2*(g^2-1)*t^2 -(h^2+4*h-4*g^2+8)*t - (h+2)^2 );
-a := (g^2-1)^2*t^3+ (h+2)*(h-2*g^2+4)*t^2 + 2*(h^2+4*h-2*g^2+6)*t + (h+2)^2;
-S := EllipticK3([a, 2*b*t^2*(la*t-mu), c*t^4*(la*t-mu)^2]);
-w := (g^2 - 1)/(2*h) - 1;
-s := 2/w;
-v := -(g^2-1)*s/((g^2+3)*s+8);
-t := EllipticParameter(S);
-X := v^2*s*(s+2)*t^2 -v^2*s*(s+2)^2/2*t^3; //Rescaling needed.
-//Y := Sqrt(RHS(S,X)); 
-
-/* Hilbert D=77 */
+/* Hilbert D=77: A1 + A3 + A5 + D5 + 2-torsion + 2 sections */
 
 A<r,s> := PolynomialRing(Rationals(), 2);
 P<t> := PolynomialRing(A);
@@ -137,12 +119,12 @@ X1 := -a3/2*t*(t-1)^2;
 Y1 := Sqrt(RHS(S,X1));
 // Compute second section X2, Y2?
 F, F0, F1, Fa := Explode(ReducibleFibers(S));
-assert Intersection(F,X1,Y1) in [2,3];
+assert Intersection(F,X1,Y1) in [1,2];
 assert Intersection(F0,X1,Y1) in [1,5];
 assert Intersection(F1,X1,Y1) eq 2;
 assert Intersection(Fa,X1,Y1) eq 0;
 
-/* Hilbert D=88 */
+/* Hilbert D=88: A9 + D4 + A2 + section */
 
 A<r,s> := PolynomialRing(Rationals(), 2);
 P<t> := PolynomialRing(A);
@@ -166,11 +148,12 @@ S := EllipticK3([a0+a1*t+a2*t^2+a3*t^3,
 F, F0, F1 := Explode(ReducibleFibers(S));
 X := P!0;
 Y := Sqrt(RHS(S,X));
-assert Intersection(F,X,Y) ne 0;
+assert Intersection(F,X,Y) in [1,2,4];
 assert Intersection(F0,X,Y) in [2,8];
 assert Intersection(F1,X,Y) in [2,3];
 
-/* A section of naive height 6: CM -657 on Shimura N=57, also with non-rat'l fibers */
+/* A section of naive height 6: CM -657 on Shimura N=57, also with non-rat'l fibers 
+   This is A5 + A11 + 2 sections */
 
 P<t> := PolynomialRing(Rationals());
 r := -7/4;
@@ -180,8 +163,6 @@ c := 9*t^2-(2*r-1)*(8*r^2+4*r-22)*t + (2*r-1)^2*p;
 b := (t-(r^2-2*r))*c+d;
 a := (t-(r^2-2*r))^2*c + 2*(t-(r^2-2*r))*d + (r^2-1)^4*((4*r+4)*t+p);
 S := EllipticK3([a, 8*(r-1)^4*(r+1)^5*b*t^2, 16*(r-1)^8*(r+1)^10*c*t^4]);
-//K := NumberField(t^2 + 12791689371/1048576);
-//S2 := BaseExtend(S, K: ComputeReducibleFibers := false);
 F, F0 := Explode(ReducibleFibers(S));
 X1 := -4*(r-1)^4*(r+1)^5*(2*r-1)*t^2/(r^2-r+1)^2
       + 4*(r-2)*(r+1)^4*t^3/(r^2-r+1);
@@ -193,4 +174,5 @@ q := 419430400*t^5 + 2846883840*t^4 + 17148174336*t^3 + 78784560576*t^2 +
      175272616341*t - 12882888;
 X2 := 3^5*11^4*t^2*q/(2^12*(81920*t^3 + 9216*t^2 + 23868*t + 39339)^2);
 Y2 := Sqrt(-11*RHS(S,X2)); //Have to work over Q(sqrt(-11))
-
+assert Intersection(F, X2, Y2) eq 6;
+assert Intersection(F0, X2, Y2) eq 3;

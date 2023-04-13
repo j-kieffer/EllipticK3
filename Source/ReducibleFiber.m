@@ -42,7 +42,8 @@ intrinsic RHSQuotientAndEval(S :: EllK3,
 			                 x0 :: RngElt,
 			                 u :: RngUPolElt,
 			                 r :: RngIntElt,
-			                 n :: RngIntElt) -> RngElt
+			                 n :: RngIntElt: add := 0)
+          -> RngElt
 								                    
 {Evaluate right hand side of S at x0 + x*u^r, divide by u^n, evaluate at given
  place, and return result as a polynomial in t}
@@ -54,7 +55,7 @@ intrinsic RHSQuotientAndEval(S :: EllK3,
     R := Parent(t);    
     Z<x> := PolynomialRing(R);
     
-    rhs := Coefficients(RHS(S, x0 + x*u^r)); //Sequence of elements in R    
+    rhs := Coefficients(RHS(S, x0 + x*u^r) + add); //Sequence of elements in R
     rhs := [ExactQuotient(c, u^n): c in rhs];
     Ev := [Evaluate(c, val): c in rhs];
     return &+[Ev[i+1] * t^i: i in [0..#Ev-1]];
@@ -177,12 +178,16 @@ ordered; in case Dn for n>4, close component comes first.}
 
     conf := RootLatticeType(ktype);
     l, n := ParseRootLatticeType(conf);
+    L := [];
 
-    if l eq "E" then return TateE(S, u, n);
-    elif l eq "D" then return TateD(S, u, n);
-    elif ktype in ["III", "IV"] then return TateA_add(S, u, ktype);
-    else return TateA_mult(S, u, n);
+    if l eq "E" then L := TateE(S, u, n);
+    elif l eq "D" then L := TateD(S, u, n);
+    elif ktype in ["III", "IV"] then L := TateA_add(S, u, ktype);
+    else L := TateA_mult(S, u, n);
     end if;
+    assert &and [#c eq 5: c in L];
+    assert #L eq n;
+    return L;
     
 end intrinsic;
 
@@ -227,7 +232,7 @@ intrinsic TateA_mult(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 	        //num := -Coefficient(rhs, 1);
 	        //den := 2*Coefficient(rhs, 2);
 	        //x0 +:= (num/den) * u^k;
-	        Left := Append(Left, [x0, u^k]);
+	        Left := Append(Left, [x0, u^k, 0, 0, u^k]);
 	        break;
 	    end try;
         
@@ -305,22 +310,26 @@ intrinsic TateD(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 		        | Degree(f[1]) eq 1];
 	    if #lin ne 3 then error "Fibers are not rational, not totally split:", rhs; end if;
 	    rts := [DegreeOneRoot(f): f in lin];
-	    for i in [1..3] do
-	        L := Append(L, [x0+rts[i]*u, u^2]);
-	    end for;
+        L := [[x0 + rts[1]*u, u^2, 0, 0, u^2],
+              [x0 + rts[2]*u, u^2, 0, 0, u^2],
+              [x0, u, 0, 0, u^2],
+              [x0 + rts[3]*u, u^2, 0, 0, u^2]];
 	    return L;
     end if;
 
     //Now n is 5 or more
     alpha := MultipleRoot(F, 1);
     beta := MultipleRoot(F, 2);
+    L := [[PolynomialRing(S)!0] : i in [1..n]];
     //Get close branch
-    L := [[x0 + alpha*u, u^2]];
+    L[n] := [x0 + alpha*u, u^2, 0, 0, u^2];
+    L[n-1] := [x0, u, 0, 0, u^2];
     //Now we need to blow up n-4 times to get the x = x0 + beta*u+... branches
     x0 +:= beta*u;
     i := 2;
     
     while true do
+        L[n-2*i+2] := [x0, u^i, 0, 0, u^i];
 	    try
 	        rhs := RHSQuotientAndEval(S, x0, u, i, 2*i+1);
 	    catch e
@@ -330,12 +339,13 @@ intrinsic TateD(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 	        assert Degree(rhs) eq 0;
 	        b, y0 := IsSquare(rhs);
 	        if not b then error "Far fibers are not rational, not a square:", rhs; end if;
-	        L := Append(L, [x0, u^i, y0*u^i, 0, u^(i+1)]);
-	        L := Append(L, [x0, u^i, -y0*u^i, 0, u^(i+1)]);
+	        L[1] := [x0, u^i, y0*u^i, 0, u^(i+1)];
+	        L[2] := [x0, u^i, -y0*u^i, 0, u^(i+1)];
 	        break;
 	    end try;
-	    
 	    assert Degree(rhs) eq 2;
+
+        L[n-2*i+1] := [x0, u^i, 0, 0, u^(i+1)];
 	    F := Factorization(rhs);
 	    try
 	        x1 := MultipleRoot(F, 2);
@@ -345,9 +355,8 @@ intrinsic TateD(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
 	        lin := [f[1]: f in F
 		            | Degree(f[1]) eq 1 and f[2] eq 1];
 	        if #lin ne 2 then error "Far fibers are not rational, no factorization:", rhs; end if;
-	        for f in lin do
-		        L := Append(L, [x0 + DegreeOneRoot(f)*u^i, u^(i+1)]);
-	        end for;
+            L[1] := [x0 + DegreeOneRoot(lin[1]) * u^i, u^(i+1), 0, 0, u^(i+1)];
+            L[2] := [x0 + DegreeOneRoot(lin[2]) * u^i, u^(i+1), 0, 0, u^(i+1)];
 	        break;
 	    end try;
 	    
@@ -370,23 +379,52 @@ intrinsic TateE(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
     //Find cube root at u=0
     rhs := RHSQuotientAndEval(S, x0, u, 0, 0);
     x0 := MultipleRoot(rhs, 3);
+    node1 := [x0, u, 0, 0, u^2];
     //Find cube root at order 1
     rhs := RHSQuotientAndEval(S, x0, u, 1, 3);
     x1 := MultipleRoot(rhs, 3);
     x0 +:= x1*u;
+    node2 := [x0, u^2, 0, 0, u^2];
     
     if n eq 6 then
 	    rhs := RHSQuotientAndEval(S, x0, u, 2, 4);
 	    assert rhs ne 0 and Degree(rhs) eq 0;
 	    b, y0 := IsSquare(rhs);
 	    if not b then error "Far fibers are not rational, not a square:", rhs; end if;
-	    L := Append(L, [x0, u^2, y0*u^2, 0, u^3]);
-	    L := Append(L, [x0, u^2, -y0*u^2, 0,u^3]);
-    elif n eq 7 then //Find one far component
+        y0 := BaseField(S) ! y0;
+        //Get linear equation for the far fibers
+        lin := RHSQuotientAndEval(S, x0, u, 2, 5: add := -y0^2*u^4);
+        assert Degree(lin) le 1;
+        c := Coefficient(lin, 1);
+        d := Coefficient(lin, 0);
+        L := [[x0, u^2, y0*u^2 - c/(2*y0)*x0*u + d/(2*y0)*u^3, c/(2*y0)*u, u^4],
+              [x0, u^2, y0*u^2, 0, u^3],
+              node2,
+              [x0, u^2, -y0*u^2, 0, u^3],
+              [x0, u^2, -y0*u^2 + c/(2*y0)*x0*u - d/(2*y0)*u^3, -c/(2*y0)*u, u^4],
+              node1];
+        
+    elif n eq 7 then //Fix this; far fiber is a parabola, what happens in the middle?
 	    rhs := RHSQuotientAndEval(S, x0, u, 2, 5);
 	    assert Degree(rhs) eq 1;
-	    L := Append(L, [x0 + DegreeOneRoot(rhs)*u^2, u^3]);
-    else assert n eq 8; //E8: nothing to be done
+        a := DegreeOneRoot(rhs);
+        L := [[x0 + a*u^2, u^3, 0, 0, u^3],
+              [x0, u^2, 0, 0, u^3],
+              [x0, u^2, 0, 0, u^3], //These two should really involve a: does it matter?
+              [x0, u^2, 0, 0, u^3],
+              node2,
+              node1,
+              [x0, u^2, 0, 0, u^3]];
+        
+    else assert n eq 8;
+         L := [[x0, u^2, 0, 0, u^3],
+               [x0, u^2, 0, 0, u^3],
+               [x0, u^2, 0, 0, u^3],
+               [x0, u^2, 0, 0, u^3],
+               [x0, u^2, 0, 0, u^3],
+               [x0, u^2, 0, 0, u^3],
+               node2,
+               node1];         
     end if;
     return L;
     

@@ -122,6 +122,29 @@ intrinsic Reverse(f :: FldFunRatUElt, n :: RngIntElt) -> RngUPolElt
 
 end intrinsic;
 
+intrinsic ReverseCoefficients(f :: RngMPolElt) -> FldFunRatElt
+
+{Given a multivariate polynomial f over k[t], substitute t by 1/t in f}
+
+    C, M := CoefficientsAndMonomials(f);
+    deg := Max([0] cat [Degree(c): c in C]);
+    res := 0;
+    for i:=1 to #C do
+        res := Reverse(C[i], deg) * M[i];
+    end for;
+    t := Parent(f) ! BaseRing(f).1;
+    return res / t^deg;
+
+end intrinsic;
+
+intrinsic ReverseCoefficients(f :: FldFunRatMElt) -> FldFunRatMElt
+                                                                         
+{Given a rational fraction f over a base field k[t], substitute t by 1/t in f}
+
+    return ReverseCoefficients(Numerator(f)) / ReverseCoefficients(Denominator(f));
+
+end intrinsic;
+
 
 intrinsic SeriesExpansion(f :: RngElt, Pl :: RngUPolElt, n :: RngIntElt)
           -> RngUPolElt
@@ -164,7 +187,7 @@ return the sequence of coefficients of f with respect to t}
 
     P := Parent(f);
     C, M := CoefficientsAndMonomials(f);
-    m := Max([Degree(c): c in C]);
+    m := Max([0] cat [Degree(c): c in C]);
     res := [P| ];
     for i:=0 to m do
         r := P!0;
