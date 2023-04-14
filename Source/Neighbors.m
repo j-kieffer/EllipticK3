@@ -163,11 +163,11 @@ intrinsic NewEllipticParameter(S :: EllK3, v :: LatElt) -> RngElt
 parameter for its associated 2-neighbor step.}
 
     //Setup
-    P := PolynomialRing(S);
     a := ExactQuotient(Norm(v), 4);
     num_degree := 2+a;
-    Q := PolynomialRing(P, 2*num_degree);
-    AssignNames(~Q, ["x", "y"] cat ["a" cat Sprint(i): i in [1..(2*num_degree - 2)]]);
+    Q := PolynomialRing(PolynomialRing(S), 2*num_degree);
+    names := ["x", "y"] cat ["a" cat Sprint(i): i in [1..(2*num_degree - 2)]];
+    AssignNames(~Q, names);
     x := Q.1;
     y := Q.2;
     den := Q!1;
@@ -225,6 +225,8 @@ parameter for its associated 2-neighbor step.}
         section +:= Q.(i+3 + num_degree + 1) * t^i * x;
     end for;
     section := 1/den * section;
+    R := Parent(section);
+    AssignNames(~R, names);
 
     //Collect linear equations in ai
     eqlist := [];
@@ -237,19 +239,16 @@ parameter for its associated 2-neighbor step.}
             k +:= d;
             continue;
         end if;
+        sec := section;
         if IsZero(pl) then
-            sec := ReverseCoefficients(section);
-            sec := Evaluate(sec, x, x/t^4);
-            sec := Evaluate(sec, y, y/t^6);
+            sec := InvertT(section);
             pl := t;
-        else
-            sec := section;
         end if;
         for j:=1 to d do
             comp := Component(F, j);
             x0, m := Explode(comp[1..2]);
             val := Max(0, f[i] + f[i]*FiberDivisor(F)[j] - v[k-1+j]);
-            ev := SeriesExpansion(sec * pl^(f[i]), pl, val);
+            ev := SeriesExpansion(Numerator(sec * pl^(f[i])), pl, val);
             ev := Evaluate(ev, x, x0 + m*x);
             ev := ReduceCoefficients(ev, pl^val);
             //Now ev must be identically zero.

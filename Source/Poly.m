@@ -132,7 +132,7 @@ intrinsic ReverseCoefficients(f :: RngMPolElt) -> FldFunRatElt
     for i:=1 to #C do
         res := Reverse(C[i], deg) * M[i];
     end for;
-    t := Parent(f) ! BaseRing(f).1;
+    t := Parent(f) ! BaseRing(Parent(f)).1;
     return res / t^deg;
 
 end intrinsic;
@@ -199,3 +199,36 @@ return the sequence of coefficients of f with respect to t}
     return res;             
     
 end intrinsic;
+
+//Magma refuses to do this for some reason.
+intrinsic Evaluate(f :: FldFunRatMElt, n :: RngIntElt, x :: FldFunRatMElt) -> FldFunRatMElt
+{Replace the n-th variable by x in f}
+
+    return Evaluate(Numerator(f), n, x) / Evaluate(Denominator(f), n, x);
+    
+end intrinsic;
+
+
+intrinsic Evaluate(f :: FldFunRatMElt, n :: RngIntElt, x :: RngMPolElt) -> FldFunRatMElt
+{Replace the n-th variable by x in f}
+
+    return Evaluate(Numerator(f), n, x) / Evaluate(Denominator(f), n, x);
+    
+end intrinsic;
+
+
+intrinsic InvertT(f :: FldFunRatMElt) -> FldFunRatMElt
+{Given a rational fraction over k[t], replace t by 1/t}
+
+    Cnum, Mnum := CoefficientsAndMonomials(Numerator(f));
+    Cden, Mden := CoefficientsAndMonomials(Denominator(f));
+    dnum := Max([0] cat [Degree(c): c in Cnum]);
+    dden := Max([0] cat [Degree(c): c in Cden]);
+    Cnum := [Reverse(c, dnum): c in Cnum];
+    Cden := [Reverse(c, dden): c in Cden];
+    t := Parent(f) ! (BaseRing(Parent(f)).1);
+    return t^(dden - dnum) * (&+ [Cnum[i] * Mnum[i]: i in [1..#Cnum]])
+           / (&+ [Cden[i] * Mden[i]: i in [1..#Cden]]);
+
+end intrinsic;
+                                            

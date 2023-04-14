@@ -11,6 +11,8 @@ load "./Tests/t-Create.m";
 print("PASS");
 load "./Tests/t-RHS.m";
 print("PASS");
+load "./Tests/t-Neighbors.m";
+print("PASS");
 load "./Tests/t-ReduciblePlaces.m";
 print("PASS");
 load "./Tests/t-Invariants.m";
