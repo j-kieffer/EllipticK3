@@ -81,7 +81,7 @@ assert Intersection(F1, X, Y) in [1,4];
 
 /* Hilbert D=41: A5 + A10 + section */
 
-A<r,s> := PolynomialRing(Rationals(), 2);
+A<r,s> := RationalFunctionField(Rationals(), 2);
 P<t> := PolynomialRing(A);
 
 a := t^4 + ((-2*s+1/2)*r + (16*s+2)) * t^3 + ((s^2+1/2*s+1/16)*r^2 +
@@ -150,7 +150,7 @@ X := P!0;
 Y := Sqrt(RHS(S,X));
 assert Intersection(F,X,Y) in [1,2,4];
 assert Intersection(F0,X,Y) in [2,8];
-assert Intersection(F1,X,Y) in [2,3];
+assert Intersection(F1,X,Y) in [1,2];
 
 /* A section of naive height 6: CM -657 on Shimura N=57, also with non-rat'l fibers 
    This is A5 + A11 + 2 sections */

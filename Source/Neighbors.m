@@ -165,29 +165,33 @@ parameter for its associated 2-neighbor step.}
     //Setup
     a := ExactQuotient(Norm(v), 4);
     num_degree := 2+a;
-    Q := PolynomialRing(PolynomialRing(S), 2*num_degree);
-    names := ["x", "y"] cat ["a" cat Sprint(i): i in [1..(2*num_degree - 2)]];
-    AssignNames(~Q, names);
-    x := Q.1;
-    y := Q.2;
-    den := Q!1;
+    multO := 2;
     
-    //Non-torsion sections
+    //Find MW section, if any
+    pt := Zero(GenericFiber(S));
     d := Dimension(RootLattice(S));
     r := MordellWeilRank(S);
+    secs := MordellWeilSections(S);
     for i:=d+1 to d+r do
-        if v[i] ne 0 then
-            error "Not implemented if non-torsion sections are present";
-        end if;
+        pt +:= v[i] * GenericPoint(secs[i-d]);
     end for;
+    if pt ne Zero(GenericFiber(S)) then
+        v := v - NSVector(S, pt);
+    end if;
     assert v in NeronSeveriRootSpan(S);
-
-    //Torsion sections
     if not v in RootLattice(S) then
         tors := [s : s in TorsionSections(S) | NSVector(s) - v in RootLattice(S)][1];
-        error "Not implemented if torsion sections are present";
+        pt +:= GenericPoint(tors);
+        v := v - NSVector(tors);
     end if;
     assert v in RootLattice(S);
+    has_mw := pt ne Zero(GenericFiber(S));
+    if has_mw then
+        xs, ys, zs := Explode(Coordinates(pt));
+        xs := xs/zs;
+        ys := ys/zs;
+        multO := multO-1; //is that right?
+    end if;
 
     //Distribute (2+a)F to make v + (2+a)F effective
     n := #ReducibleFibers(S);
@@ -203,30 +207,62 @@ parameter for its associated 2-neighbor step.}
         k +:= d;
     end for;
     assert k eq Dimension(RootLattice(S)) + 1;
-    rest := 2+a - (&+f);
+    rest := num_degree - (&+f);
     assert rest ge 0;
     f[1] +:= rest;
 
+    //Compute weighted monomials
+    weights := &cat[[[a,b]: a in [0..Floor(multO/2)]]: b in [0..Floor(multO/3)]];
+    weights := [w: w in weights | 2*w[1]+3*w[2] le multO];
+    
+    //Compute number of variables ai
+    nb_var := 2; //x,t
+    for w in weights do
+        a, b := Explode(w);
+        nb_var +:= Max(0, num_degree - 4*a - 6*b + 1);
+        if has_mw then
+            nb_var +:= Max(0, num_degree - 4*a - 6*b);
+        end if;
+    end for;
+
+    //Create multivariate fraction field
+    Q := RationalFunctionField(PolynomialRing(S), nb_var);
+    names := ["x", "y"] cat ["a" cat Sprint(i): i in [0..(nb_var-3)]];
+    AssignNames(~Q, names);
+    x := Q.1;
+    y := Q.2;
+    
     //Compute denominator
+    denom := PolynomialRing(S)!1;
     for i:=1 to n do
         F := ReducibleFibers(S)[i];
         if not IsZero(Place(F)) then
-            den *:= Q ! Place(F)^(f[i]);
+            denom *:= Place(F)^(f[i]);
         end if;
     end for;
     
-    //Sections take the form (a(t)x + b(t))/den
+    //Compute possible sections in terms of coefficients ai
     section := Q!0;
     t := EllipticParameter(S);
-    for i:=0 to num_degree do
-        section +:= Q.(i+3) * t^i;
+    j := 3;
+    for w in weights do
+        a, b := Explode(w);
+        for i:=0 to num_degree - 4*a - 6*b do
+            section +:= Q.j * t^i * x^a * y^b;
+            j +:= 1;
+        end for;
+        if has_mw then
+            for i := 0 to num_degree - 4*a - 6*b - 1 do
+                section := Q.j * t^i * x^a * y^b * (x-xs)/(y-ys);
+                j +:= 1;
+            end for;
+        end if;
     end for;
-    for i := 0 to num_degree - 4 do
-        section +:= Q.(i+3 + num_degree + 1) * t^i * x;
-    end for;
-    section := 1/den * section;
-    R := Parent(section);
-    AssignNames(~R, names);
+    section := section/denom;
+    
+    //Substract 1 to get a dimension 1 subspace
+    d := Degree(denom);
+    section := Evaluate(section, 3 + d, 0);
 
     //Collect linear equations in ai
     eqlist := [];
@@ -240,21 +276,30 @@ parameter for its associated 2-neighbor step.}
             continue;
         end if;
         sec := section;
+        den := denom;
         if IsZero(pl) then
             sec := InvertT(section);
+            sec := Evaluate(sec, 1, Q.1/t^4);
+            sec := Evaluate(sec, 2, Q.1/t^6);
+            den := Reverse(denom, num_degree);
             pl := t;
         end if;
         for j:=1 to d do
             comp := Component(F, j);
-            x0, m := Explode(comp[1..2]);
+            x0, mx, y0, y1, my := Explode(comp);
             val := Max(0, f[i] + f[i]*FiberDivisor(F)[j] - v[k-1+j]);
-            ev := SeriesExpansion(Numerator(sec * pl^(f[i])), pl, val);
-            ev := Evaluate(ev, x, x0 + m*x);
+            ev := SeriesExpansion(1/den * pl^(f[i]), pl, val) * Numerator(sec);
+            xpol := Parent(ev).1;
+            ypol := Parent(ev).2;
+            ev := Evaluate(ev, 1, x0 + mx*xpol);
+            ev := Evaluate(ev, 2, y0 + y1*(x0+mx*xpol) + my*ypol);
             ev := ReduceCoefficients(ev, pl^val);
             //Now ev must be identically zero.
             coefs := CoefficientsInT(ev);
             for c in coefs do
-                eqlist cat:= Coefficients(c, x); //what about y?
+                for d in Coefficients(c, ypol) do
+                    eqlist cat:= Coefficients(d, xpol);
+                end for;
             end for;
         end for;
         k +:= d;
@@ -262,7 +307,7 @@ parameter for its associated 2-neighbor step.}
     assert k eq Dimension(RootLattice(S)) + 1;
 
     //Build linear system
-    nrows := 2*num_degree - 2;
+    nrows := nb_var - 2;
     ncols := #eqlist;
     mat := ZeroMatrix(BaseField(S), nrows, ncols);
     for i:=1 to ncols do
@@ -273,38 +318,36 @@ parameter for its associated 2-neighbor step.}
             mat[k,i] := coefs[j];
         end for;
     end for;
+    //Remove zero row
+    mat := Matrix(BaseField(S), nrows-1, ncols,
+                  [Rows(mat)[i]: i in [1..nrows] | i ne Degree(denom)+1]);
 
-    //Solve; we should find a 2-dimensional space of sections
-    sols := Basis(NullSpace(mat)); //Should be echelonized; simplify?
-    assert #sols eq 2;
-    //Pick out any non-constant one
-    sec1 := Numerator(section);
-    sec2 := Numerator(section);    
+    //Solve; we find a 1-dimensional space of sections
+    sols := Basis(NullSpace(mat));
+    assert #sols eq 1;
+    sol := Eltseq(sols[1]);
+    sol := sol[1..Degree(denom)] cat [0] cat sol[Degree(denom)+1..nrows-1];
+    sec := section;
     for i:=1 to nrows do
-        sec1 := Evaluate(sec1, Q.(i+2), sols[1][i]);
-        sec2 := Evaluate(sec2, Q.(i+2), sols[2][i]);
+        sec := Evaluate(sec, i+2, sol[i]);
     end for;
-    if Degree(sec2) eq 0 then
-        sec2 := sec1;
-    end if;
-    sec1 := den;
 
     //Convert to nicer field
     R<x,y> := RationalFunctionField(PolynomialRing(S), 2);
-    s1 := R!0;
-    s2 := R!0;
-    c1, m1 := CoefficientsAndMonomials(sec1);
-    for i:=1 to #c1 do
-        k := Degree(m1[i], Q.1);
-        l := Degree(m1[i], Q.2);
-        s1 +:= c1[i] * x^k * y^l;
+    num := R!0;
+    den := R!0;
+    c, m := CoefficientsAndMonomials(Numerator(sec));
+    for i:=1 to #c do
+        k := Degree(m[i], xpol);
+        l := Degree(m[i], ypol);
+        num +:= c[i] * x^k * y^l;
+    end for;    
+    c, m := CoefficientsAndMonomials(Denominator(sec));
+    for i:=1 to #c do
+        k := Degree(m[i], xpol);
+        l := Degree(m[i], ypol);
+        den +:= c[i] * x^k * y^l;
     end for;
-    c2, m2 := CoefficientsAndMonomials(sec2);
-    for i:=1 to #c2 do
-        k := Degree(m2[i], Q.1);
-        l := Degree(m2[i], Q.2);
-        s2 +:= c2[i] * x^k * y^l;
-    end for;
-    return s2/s1;    
+    return num/den;
     
 end intrinsic;

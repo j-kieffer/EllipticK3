@@ -241,13 +241,13 @@ intrinsic TateA_mult(S :: EllK3, u :: RngUPolElt, n :: RngIntElt)
         catch e
             //Reached the end with n even
             assert 2*k eq n;	    
-	        Left := Append(Left, [x0, u^k, y0*(x0+x1*u^k), 0, u^(k+1)]);
-	        Right := Append(Right, [x0, u^k, -y0*(x0+x1*u^k), 0, u^(k+1)]);
+	        Left := Append(Left, [x0, u^k, -y0*(x1*u^k+x0), y0, u^(k+1)]);
+	        Right := Append(Right, [x0, u^k, y0*(x1*u^k+x0), -y0, u^(k+1)]);
             break;
         end try;
         
-        Left := Append(Left, [x0, u^k, y0*(x1*u^k-x0), y0, u^(k+1)]);
-        Right := Append(Right, [x0, u^k, -y0*(x1*u^k-x0), -y0, u^(k+1)]);
+        Left := Append(Left, [x0, u^k, -y0*(x1*u^k+x0), y0, u^(k+1)]);
+        Right := Append(Right, [x0, u^k, y0*(x1*u^k+x0), -y0, u^(k+1)]);
         x0 +:= x1*u^k;
 	    k +:= 1;
     end while;
